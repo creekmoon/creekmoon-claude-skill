@@ -1,30 +1,31 @@
 ---
 name: agent-memory-skill
-description: 创建和维护 .agent-memory/ 项目记忆文档，通过三层结构（系统层→模块层→深度层）建立渐进式项目知识库。读模式用于快速了解、接手项目；写模式用于上线后归档稳定实现。当用户说"分析项目"、"建立记忆"、"更新记忆"、"了解项目"、"接手项目"时使用。
+description: 项目记忆缓存系统（.agent-memory/）。项目存在 .agent-memory/ 目录时，在任何涉及代码的任务前自动读取记忆获取上下文。Use when writing code, modifying code, debugging, reviewing code, refactoring, adding features, fixing bugs, understanding codebase, answering code questions, or when user mentions "分析项目", "建立记忆", "更新记忆", "了解项目", "接手项目". If .agent-memory/ exists, ALWAYS read relevant memory before starting any code task.
 ---
 
 # Agent Memory Skill
 
 渐进式项目记忆系统。通过三层文档结构让 AI 快速理解项目全貌，按需深入细节。
 
-**核心原则**: `.agent-memory/` 只记录**已上线的事实**，不记录开发中/WIP 内容。
+**核心原则**: `.agent-memory/` 只记录**经代码验证的事实**，不记录未实现/开发中/WIP 内容。
 
 ## Quick start
 
+- **任何代码任务** → 检查 `.agent-memory/` 是否存在，存在则先读取相关记忆
 - **接手项目** → 从 `.agent-memory/01-system/00-index.md` 开始阅读
 - **建立记忆** → 按 系统层 → 模块层 → 深度层 顺序创建文档
-- **更新记忆** → 确认代码已上线后，更新对应层级文档
+- **更新记忆** → 验证代码事实后，更新对应层级文档
 
 ## Mode detection
 
-根据用户意图判断模式：
+**第 0 步**: 检查项目根目录是否存在 `.agent-memory/` 目录。
 
-| 用户说... | 模式 | 动作 |
-|-----------|------|------|
-| "帮我了解/接手这个项目" | **读模式** | 阅读已有文档，向用户汇报 |
-| "改下XX模块" | **读模式** | 查阅相关模块文档辅助开发 |
-| "分析项目，建立记忆文档" | **写模式-初始化** | 扫描项目，创建文档体系 |
-| "XX需求已上线，更新记忆" | **写模式-更新** | 更新对应文档 |
+| 场景 | 模式 | 动作 |
+|------|------|------|
+| 有 `.agent-memory/` + 任何涉及代码的任务 | **读模式-自动** | 静默读取相关记忆，辅助当前任务 |
+| "帮我了解/接手这个项目" | **读模式-全量** | 按顺序阅读全部文档，向用户汇报 |
+| "分析项目，建立记忆文档" | **写模式-初始化** | 扫描+验证代码，创建文档体系 |
+| "XX已完成，更新记忆" | **写模式-更新** | 验证代码事实后更新对应文档 |
 
 ## Document structure
 
@@ -55,9 +56,18 @@ description: 创建和维护 .agent-memory/ 项目记忆文档，通过三层结
 
 ## Instructions: Read mode
 
-### Scenario A: Onboarding (接手项目)
+### Scenario A: Auto-context (自动上下文 — 最常用)
 
-按以下顺序阅读，由浅入深：
+任何涉及代码的任务触发时：
+
+1. 读 `01-system/00-index.md` → 获取系统定位和模块清单
+2. 根据任务内容定位相关模块 → 读 `02-modules/mod-{模块}.md`
+3. 需要实现细节时 → 读 `03-deep/{模块名}/` 下对应文档
+4. **静默使用上下文**，不主动向用户转述记忆内容（除非被问到）
+
+### Scenario B: Onboarding (接手项目)
+
+按以下顺序阅读，由浅入深，并向用户汇报：
 
 1. `01-system/00-index.md` → 系统定位和模块全景
 2. `01-system/01-context.md` → 项目背景和边界
@@ -66,30 +76,31 @@ description: 创建和维护 .agent-memory/ 项目记忆文档，通过三层结
 5. `02-modules/00-index.md` → 模块清单
 6. 根据任务选择 `mod-{相关模块}.md` 深入
 
-### Scenario B: Task-specific lookup (任务定位)
-
-1. 查阅 `02-modules/mod-{模块}.md` → 找到入口类和关键方法
-2. 需要理解实现细节 → `03-deep/{模块名}/` 下的对应文档
-3. 基于文档定位代码位置，开始修改
-
 ---
 
 ## Instructions: Write mode
 
-### Pre-condition (写入前提)
+### Verification baseline (写入底线)
 
-**只有满足以下全部条件才能写入**：
-- ✅ 代码已合并到主分支 (main/master)
-- ✅ 已发布到生产环境
-- ❌ 排除：开发中(WIP)、待评审、未合并、feature branch
-- ❌ 排除：实验性代码、临时方案、可能回滚的改动
+**每条记录写入前，必须完成代码事实验证：**
+
+1. **存在性**: 用 Grep/Read 确认类名/方法名/路由确实存在于代码中
+2. **完整性**: Read 抽查方法体，确认非空实现，不含 `TODO`/`FIXME`/`HACK`/`NotImplementedException`
+3. **可用性**: 有实际调用链（非孤立死代码），配置/依赖已就绪（非注释掉的配置）
+4. **排除项**:
+   - ❌ `@Deprecated` / `deprecated` 标记的代码
+   - ❌ 测试类/测试方法中的 mock 实现
+   - ❌ 注释掉的代码块
+   - ❌ feature flag 关闭状态的功能
+   - ❌ 开发中(WIP)、实验性、临时方案
+
+**验证方法**: 对每个证据锚点，Grep 确认符号存在 + Read 抽查关键方法确认非空实现。不确定的不写。
 
 ### Scenario C: Initial setup (首次建立)
 
 **Step 1 — 探索项目**
 - 扫描项目结构（pom.xml/package.json、目录树、配置文件）
 - 识别技术栈、架构风格、业务领域划分
-- 确认分析的是主分支的已发布代码
 
 **Step 2 — 创建系统层** (`01-system/`)
 - 使用 `assets/system-*-template.md` 模板
@@ -106,15 +117,15 @@ description: 创建和维护 .agent-memory/ 项目记忆文档，通过三层结
 - 使用 `assets/deep-*-template.md` 模板
 - 约束: 使用 Mermaid 图，禁止贴原始代码
 
-**Step 5 — 验证**
+**Step 5 — 验证（必须）**
+- 对所有证据锚点执行 Verification baseline 检查
 - 检查所有文档间链接可达
-- 验证证据锚点（类名/方法名）确实存在于代码中
 - 确保三层间有清晰的导航路径
 
-### Scenario D: Post-release update (上线后更新)
+### Scenario D: Post-change update (变更后更新)
 
-**Step 1 — 确认上线状态**
-- 代码已合并到主分支且已发布到生产
+**Step 1 — 审查代码现状**
+- 用 Grep/Read 审查变更涉及的代码，确认实现完整且可用
 
 **Step 2 — 识别变更范围**
 - 架构/技术栈变化 → 更新系统层
@@ -123,7 +134,7 @@ description: 创建和维护 .agent-memory/ 项目记忆文档，通过三层结
 
 **Step 3 — 执行更新**
 - 只修改受影响的文档
-- 更新交叉引用和协作点
+- 每条新增/修改记录需通过 Verification baseline
 - 删除已废弃的信息
 
 ---
