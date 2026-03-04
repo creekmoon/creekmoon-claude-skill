@@ -223,22 +223,45 @@ public void bindTrackingNo(Long orderId, String trackingNo, String platformName)
 1. 确定审查范围（用户指定的方法/文件/git diff/目录）
 2. 读取 [checklist.md](checklist.md) 获取完整检查项
 3. 逐项检查，需要判断规则边界时读取 [rules-detail.md](rules-detail.md)
-4. 输出违规报告
+4. 对每条建议确定依据类型（见下），输出带依据类型的违规报告
+
+**依据类型（四选一，必填）：**
+
+- **Style Rule**：明确对应 R1–R11 中的某条规则，**必须写规则号**
+- **Project Convention**：项目内部约定/历史一致性，**必须写约定来源**（如"同文件既有常量风格"）
+- **Correctness**：正确性/Bug 风险，**必须描述风险与触发条件**
+- **Preference**：可读性偏好，**不得带规则号，不得强制修改**
+
+> **规则引用门禁**：找不到明确规则禁止写规则号。宁可标 Preference，也不要误标 R。
+
+**规则引用三段式（依据类型为 Style Rule 时强制）：**
+
+当依据类型为 Style Rule 时，`依据` 字段必须包含三段：① 规则号 ② 规则关键句摘录（原文 1 句）③ 落点说明（代码哪里违背/哪里符合）。三段缺一，自动降级为 Preference。
 
 **输出格式：**
 
 按严重程度分组输出，每项包含：
 
 ```
-### [必须修复] R3 Name == Behavior
+### [必须修复] Style Rule · R3 Name == Behavior
 - 位置: `XxxService.java:42` — `deleteUser()`
-- 问题: 方法名叫 deleteUser，但内部还执行了发送通知操作
+- 依据: R3 关键句 "当方法内部存在业务上独立的复合操作时，强烈建议在方法名中体现" → 本处违背：deleteUser 内部含通知操作
 - 建议: 重命名为 `deleteUserAndNotice()`，或将通知逻辑拆出
 ```
 
+偏好类建议示例：
+
+```
+### [偏好建议] Preference · 局部变量可读性
+- 位置: `PilotRequestParser.java:35`
+- 依据: 可读性偏好，非 creekmoon-code-style 规则，不强制
+- 建议: 将 getter 回读改为局部变量
+```
+
 严重程度：
-- **必须修复**: 违反核心契约（R3 命名不符、R8 tryXxx 抛异常、R6 隐藏副作用）
-- **建议优化**: 影响可读性和可维护性（R9 分区不清、R5 嵌套过深、R2 过度抽取）
+- **必须修复**：违反核心契约（R3 命名不符、R8 tryXxx 抛异常、R6 隐藏副作用），依据类型必须为 Style Rule 或 Correctness
+- **建议优化**：影响可读性和可维护性（R9 分区不清、R5 嵌套过深、R2 过度抽取），有规则可引用
+- **偏好建议**：无规则覆盖，属 Convention 或 Preference，**不得带规则号**，开发者自行决定是否修改
 
 ## 场景 C：重构建议（伴随编码触发）
 
