@@ -10,6 +10,7 @@
 | `creekmoon-trd-spec` | TRD 写作规范：架构/模块/接口层面，不写代码细节 |
 | `creekmoon-code-style` | 代码风格：方法设计、入参、流程组织、命名 |
 | `creekmoon-project-memory` | 项目记忆：`.agent-memory/` 渐进式知识库，方便 AI 快速接手项目 |
+| `creekmoon-weekly-report` | 项目周报：从 Git 提交记录提取开发活动，生成结构化《项目周报-开发维度》 |
 
 ## 使用方式
 
