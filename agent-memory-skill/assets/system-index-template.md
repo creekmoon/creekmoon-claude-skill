@@ -1,5 +1,5 @@
 ---
-description: 系统层入口索引 - 项目整体概览和导航
+description: 根层入口索引 - 项目整体概览和完整知识树导航
 ---
 
 # {项目名称} - 系统总览
@@ -20,14 +20,24 @@ description: 系统层入口索引 - 项目整体概览和导航
 
 ---
 
-## 模块导航
+## 完整知识树
 
-> 跳转到 [模块层索引](../02-modules/00-index.md) 查看业务领域划分。
+> 两级索引：模块（子层）→ 每模块的链路文档（链路层）。无需打开子文档即可判断导航路径。
 
-| 模块 | 职责 | 文档 |
-|------|------|------|
-| {模块A} | {一句话职责} | [mod-{A}](../02-modules/mod-{A}.md) |
-| {模块B} | {一句话职责} | [mod-{B}](../02-modules/mod-{B}.md) |
+### {模块A} — {一句话职责}
+
+→ [mod-{A}.md](../02-modules/mod-{A}.md)
+
+- flow: [flow-{流程1}](../03-chains/{A}/flow-{流程1}.md) · {一句话说明}
+- lifecycle: [lifecycle-{实体}](../03-chains/{A}/lifecycle-{实体}.md) · {一句话说明}
+- interaction: [interaction-{协作}](../03-chains/{A}/interaction-{协作}.md) · {一句话说明}
+
+### {模块B} — {一句话职责}
+
+→ [mod-{B}.md](../02-modules/mod-{B}.md)
+
+- flow: [flow-{流程2}](../03-chains/{B}/flow-{流程2}.md) · {一句话说明}
+- （暂无链路文档）
 
 ---
 

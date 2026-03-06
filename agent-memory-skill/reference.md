@@ -41,10 +41,15 @@
 
 ## N+1. 导航
 
-- ↑ 上级: [系统总览](00-index.md)
+- ↑ 上级: [系统总览](../01-system/00-index.md)
 - → 相关: [模块-XX](mod-xx.md)
-- ↓ 深入: [数据流-XX](../03-deep/xx/dataflow-xx.md)
+- ↓ 链路: [链路文档](../03-chains/xx/)
+- ↓↓ 深度: [深度文档](../04-deep/xx/)
 ```
+
+**索引文件（00-index.md）的特殊格式**：
+
+`00-index.md` 不使用普通导航 footer，而是使用「完整知识树」节展示两级视图（见第 9 节）。普通文档保持 ↑↓→ footer 不变。
 
 ---
 
@@ -80,7 +85,7 @@
 
 ## 4. Mermaid 图表规范
 
-深度层使用 Mermaid 图表达复杂逻辑，优先于纯文字描述。
+链路层（03-chains）使用 Mermaid 图表达复杂逻辑，优先于纯文字描述。
 
 ### 状态机图 (生命周期)
 
@@ -163,6 +168,18 @@ flowchart LR
 
 ## 7. 各层约束详细
 
+### 层间关系（树状，非平行）
+
+```
+01-system（根层） → 02-modules（子层） → 03-chains（链路层） → 04-deep（深度层）
+```
+
+- 根层是整棵树的入口，记录系统全景，不直接记录业务细节
+- 子层从根层链出，每个模块文档是根层的子节点
+- 链路层从子层链出，回答"哪个方法调用哪个方法" — 适合序列图/状态机
+- 深度层从链路层链出，回答"某处内部发生了什么" — 适合条件树/算法步骤
+- **导航只向下链出，不跨层跳转**（除 00-index 的两级视图外）
+
 ### System layer (01-system/)
 
 - 总计 ≤ 500 行
@@ -178,13 +195,21 @@ flowchart LR
 - 核心流程 5-10 步概要
 - 禁止：长篇代码示例，用类名/方法名代替
 
-### Deep layer (03-deep/)
+### Chains layer (03-chains/)
 
-- 按模块创建子目录: `03-deep/{模块名}/`
+- 按模块创建子目录: `03-chains/{模块名}/`
 - 文档类型：`flow-*`、`lifecycle-*`、`dataflow-*`、`interaction-*`
-- 使用 Mermaid 图优先于文字描述
+- 使用 Mermaid 图优先于文字描述，精确到方法调用级别
 - 代码执行链精确到类名+方法名，不展示代码内容
 - 禁止：直接贴原始代码
+
+### Deep layer (04-deep/)
+
+- 按模块创建子目录: `04-deep/{模块名}/`
+- 文档类型：`logic-*`（复杂场景的代码级逻辑）
+- **创建时机**：仅当某场景包含多层嵌套条件、非显而易见的边界逻辑、或复杂数据状态变化时
+- 每篇聚焦**单一**复杂场景，不混写多个场景
+- 禁止：直接贴原始代码、多场景混写
 
 ---
 
@@ -200,8 +225,49 @@ flowchart LR
 | `assets/system-conventions-template.md` | `01-system/05-conventions.md` |
 | `assets/modules-index-template.md` | `02-modules/00-index.md` |
 | `assets/module-template.md` | `02-modules/mod-{领域}.md` |
-| `assets/deep-index-template.md` | `03-deep/00-index.md` |
-| `assets/deep-flow-template.md` | `03-deep/{模块}/flow-{流程}.md` |
-| `assets/deep-lifecycle-template.md` | `03-deep/{模块}/lifecycle-{实体}.md` |
-| `assets/deep-dataflow-template.md` | `03-deep/{模块}/dataflow-{场景}.md` |
-| `assets/deep-interaction-template.md` | `03-deep/{模块}/interaction-{协作}.md` |
+| `assets/deep-index-template.md` | `03-chains/00-index.md` |
+| `assets/deep-flow-template.md` | `03-chains/{模块}/flow-{流程}.md` |
+| `assets/deep-lifecycle-template.md` | `03-chains/{模块}/lifecycle-{实体}.md` |
+| `assets/deep-dataflow-template.md` | `03-chains/{模块}/dataflow-{场景}.md` |
+| `assets/deep-interaction-template.md` | `03-chains/{模块}/interaction-{协作}.md` |
+| `assets/deep-index-v4-template.md` | `04-deep/00-index.md` |
+| `assets/deep-logic-template.md` | `04-deep/{模块}/logic-{复杂场景}.md` |
+
+---
+
+## 9. 索引文件两级视图规范
+
+所有 `00-index.md`（根层和子层）必须展示**往下两级**的内容，让读者无需打开子文档即可判断导航路径。
+
+**❌ Bad** — 只有一级，无法判断链路文档是否存在：
+
+```markdown
+| 模块A | 职责描述 | [mod-A.md](mod-A.md) |
+```
+
+**✅ Good** — 两级视图，一眼看到模块 + 其链路文档：
+
+```markdown
+### 模块A — 职责描述
+
+→ [mod-A.md](mod-A.md)
+
+- flow: [flow-下单](../03-chains/A/flow-下单.md) · 处理订单创建到支付完成
+- lifecycle: [lifecycle-Order](../03-chains/A/lifecycle-Order.md) · 订单状态机全流程
+- （暂无更多链路文档）
+```
+
+**格式规则**：
+- 模块标题行：`### {模块名} — {一句话职责}`
+- 模块链接行：`→ [{模块文档}]({路径})`
+- 链路文档条目：`- {类型}: [{链接名}]({路径}) · {一句话说明}`
+- 若无链路文档：`- （暂无链路文档）`，不留空
+
+**各层 00-index 的两级范围**：
+
+| 索引文件 | 第一级 | 第二级 |
+|----------|--------|--------|
+| `01-system/00-index.md` | 模块（子层） | 每模块的链路文档（链路层） |
+| `02-modules/00-index.md` | 模块（子层） | 每模块的链路文档（链路层） |
+| `03-chains/00-index.md` | 链路文档（链路层） | 每链路文档关联的深度文档（深度层） |
+| `04-deep/00-index.md` | 深度文档（深度层） | 无下级（叶节点，用表格列出场景说明） |
