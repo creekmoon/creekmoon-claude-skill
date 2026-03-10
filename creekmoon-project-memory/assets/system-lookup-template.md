@@ -17,21 +17,23 @@ confidence: low
 
 # Lookup
 
-> 唯一反向索引。通过符号、别名、场景词、故障现象定位模块和主题。
+> 唯一反向索引。通过符号、别名、场景词、故障现象优先定位到 topic；只有确实涉及方法级逻辑时才补充 deep。
 
 ## 1. Lookup Table
 
-| Key | Kind | Module | Primary Doc | Topic |
-|-----|------|--------|-------------|-------|
-| `OrderService.createOrder()` | symbol | `order` | [mod-order](../02-modules/mod-order.md) | [topic-create-order](../02-modules/order/topic-create-order.md) |
-| 下单 | alias | `order` | [mod-order](../02-modules/mod-order.md) | [topic-create-order](../02-modules/order/topic-create-order.md) |
-| 订单重复创建 | symptom | `order` | [mod-order](../02-modules/mod-order.md) | [topic-order-idempotency](../02-modules/order/topic-order-idempotency.md) |
+| Key | Kind | Module | Primary Doc | Topic | Deep |
+|-----|------|--------|-------------|-------|------|
+| `OrderService.createOrder()` | symbol | `order` | [mod-order](../02-modules/mod-order.md) | [topic-create-order](../02-modules/order/topic-create-order.md) | |
+| 下单 | alias | `order` | [mod-order](../02-modules/mod-order.md) | [topic-create-order](../02-modules/order/topic-create-order.md) | |
+| `StockService.reserve()` | symbol | `order` | [mod-order](../02-modules/mod-order.md) | [topic-create-order](../02-modules/order/topic-create-order.md) | [deep-create-order](../02-modules/order/deep-create-order.md) |
+| 订单重复创建 | symptom | `order` | [mod-order](../02-modules/mod-order.md) | [topic-order-idempotency](../02-modules/order/topic-order-idempotency.md) | |
 
 ## 2. Organization Rules
 
 - 本页不是首跳
 - 本页只做映射，不展开主题细节
 - 每个 key 必须落到模块主入口，并尽量落到一个主题叶子
+- 只有当 key 明确指向方法级内部逻辑时，才填写 `Deep`
 - 默认保持单文件，不主动拆成多个入口索引
 - 推荐按模块或稳定键顺序组织，而不是随意追加
 
@@ -43,7 +45,7 @@ confidence: low
 
 ## 4. Retrieval Keywords
 
-`symbol` / `alias` / `scenario` / `symptom`
+`symbol` / `alias` / `scenario` / `symptom` / `topic`
 
 ## 5. Navigation
 

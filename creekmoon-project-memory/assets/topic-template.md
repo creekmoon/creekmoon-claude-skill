@@ -11,6 +11,7 @@ symbols:
   - `{POST /api/path}`
 related:
   - ../mod-{module}.md
+  - {optional: deep-{topic}.md}
 coverage: stub
 last_verified: YYYY-MM-DD
 confidence: low
@@ -59,15 +60,22 @@ confidence: low
 - `{POST /api/path}`
 - `{table_or_topic}`
 
-## 7. Split Trigger Check
+## 7. When To Escalate To Deep
+
+- 当编码或调试需要落到稳定的内部方法组、关键 guard、状态变化顺序时，再进入 `deep-{topic}.md`
+- 如果当前页已经足够回答“怎么改代码”，不要为了完整性进入 deep
+- `deep-{topic}.md` 只能补充方法级逻辑，不能替代本页的主题主线
+
+## 8. Split Trigger Check
 
 - 如果新增内容对应另一组主入口、另一类独立异常族或另一条可独立命名的主线，应新建 `topic-*.md`
 - 如果新增内容只是当前主题的自然分支，可继续并入本页
 
-## 8. Retrieval Keywords
+## 9. Retrieval Keywords
 
 `{topic}` / `{alias}` / `{symptom}` / `{entry-method}` / `{edge-case}`
 
-## 9. Navigation
+## 10. Navigation
 
 - ↑ 上级: [mod-{module}.md](../mod-{module}.md)
+- ↓ 如需要且已存在: `deep-{topic}.md`
