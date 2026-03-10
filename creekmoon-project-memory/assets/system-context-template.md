@@ -1,65 +1,56 @@
 ---
-description: 系统层 - 项目上下文、背景、边界
+layer: system
+doc_type: context
+module: global
+topic: project-context
+aliases:
+  - project context
+  - scope
+symbols: []
+related:
+  - index.md
+  - architecture.md
+  - lookup.md
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
 ---
 
 # 项目上下文
 
-## 1. 项目定位
+> 说明项目做什么、不做什么，以及核心业务词是什么意思。
 
-### 1.1 一句话描述
+## 1. Project Purpose
 
-{项目是什么，解决什么核心问题}
+- **一句话描述**: {项目是什么，解决什么核心问题}
+- **目标用户**: {用户群体与使用场景}
+- **业务价值**: {为什么这个系统存在}
 
-### 1.2 目标用户
+## 2. In Scope / Out of Scope
 
-- {用户群体1}: {使用场景}
-- {用户群体2}: {使用场景}
-
-### 1.3 业务价值
-
-- {价值1}
-- {价值2}
-
----
-
-## 2. 系统边界
-
-### 2.1 包含 (In Scope)
+### 2.1 In Scope
 
 - {能力1}
 - {能力2}
-- {能力3}
 
-### 2.2 不包含 (Out of Scope)
+### 2.2 Out of Scope
 
-- {外部系统A负责，本系统只调用}
-- {功能B不在范围内}
+- {明确由其他系统负责的内容}
+- {当前不覆盖的能力}
 
----
+## 3. Core Terms
 
-## 3. 核心概念
+| Term | Meaning | Code Anchor |
+|------|---------|-------------|
+| `{term-a}` | {定义} | `{ClassName}` |
+| `{term-b}` | {定义} | `{table_name}` |
 
-### 3.1 领域术语
+## 4. Retrieval Keywords
 
-| 术语 | 定义 | 代码体现 |
-|------|------|----------|
-| {术语A} | {定义} | `{ClassName}` |
-| {术语B} | {定义} | `{table_name}` |
+`{keyword-1}` / `{keyword-2}` / `{core-class}` / `{main-table}` / `{external-system}`
 
-### 3.2 业务规则摘要
+## 5. Navigation
 
-- {规则1}: {简述}
-- {规则2}: {简述}
-
----
-
-## 4. 可检索关键词
-
-`{关键词1}` / `{关键词2}` / `{核心类名}` / `{主表名}` / `{外部系统}`
-
----
-
-## 5. 导航
-
-- ↑ 上级: [系统总览](00-index.md)
-- → 相关: [架构概览](02-architecture.md)
+- ↑ 上级: [System Index](index.md)
+- → 相关: [architecture.md](architecture.md)
+- → 相关: [lookup.md](lookup.md)

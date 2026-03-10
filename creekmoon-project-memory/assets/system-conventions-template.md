@@ -1,90 +1,55 @@
 ---
-description: 系统层 - 全局约定、编码规范
+layer: system
+doc_type: conventions
+module: global
+topic: conventions
+aliases:
+  - coding conventions
+  - project conventions
+symbols:
+  - `{ExceptionClass}`
+related:
+  - index.md
+  - data-model.md
+  - ../02-modules/index.md
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
 ---
 
 # 全局约定
 
-## 1. 命名约定
+> 记录跨模块共用的命名、异常、接口和工程约定。
 
-| 类型 | 规则 | 示例 |
-|------|------|------|
-| 类名 | PascalCase | `OrderService`, `UserController` |
-| 方法名 | camelCase | `createOrder()`, `getUserById()` |
-| 常量 | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
-| 数据库表 | 小写下划线 | `t_order`, `t_user_profile` |
-| 数据库字段 | 小写下划线 | `created_at`, `user_id` |
-| API路径 | 小写中划线 | `/api/v1/orders/{id}` |
+## 1. Naming Rules
 
----
+| Kind | Rule | Example |
+|------|------|---------|
+| Class | {规则} | `{ExampleClass}` |
+| Method | {规则} | `{exampleMethod()}` |
+| Table | {规则} | `{t_example}` |
+| API Path | {规则} | `{/api/v1/example}` |
 
-## 2. 包结构约定
+## 2. Error and Response Rules
 
-```
-com.{company}.{project}
-├── common/                      # 公共组件
-│   ├── config/                   # 全局配置
-│   ├── constant/                 # 常量
-│   ├── exception/                # 异常
-│   ├── util/                     # 工具类
-│   └── ...
-├── {domainA}/                   # 领域A
-│   ├── controller/               # 控制器
-│   ├── service/                  # 服务层
-│   ├── domain/                   # 领域模型
-│   ├── repository/               # 仓储接口
-│   ├── infrastructure/          # 基础设施实现
-│   └── ...
-└── {domainB}/                   # 领域B
-    └── ...
-```
+| Scenario | Error Type | Status/Code | Notes |
+|----------|------------|-------------|-------|
+| {参数错误} | `{Exception}` | `{400 / 1000}` | {说明} |
+| {未找到} | `{Exception}` | `{404 / 1001}` | {说明} |
 
----
+## 3. Shared Engineering Conventions
 
-## 3. 异常处理约定
+- {事务边界约定}
+- {日志约定}
+- {幂等 / 重试 / 超时约定}
+- {接口响应格式约定}
 
-| 场景 | 异常类型 | HTTP状态码 | 错误码 |
-|------|----------|------------|--------|
-| 参数错误 | `IllegalArgumentException` | 400 | 1000 |
-| 未找到 | `NotFoundException` | 404 | 1001 |
-| 权限不足 | `UnauthorizedException` | 403 | 1002 |
-| 系统错误 | `SystemException` | 500 | 5000 |
+## 4. Retrieval Keywords
 
----
+`{naming-rule}` / `{error-type}` / `{response-shape}` / `{shared-rule}`
 
-## 4. 响应格式约定
+## 5. Navigation
 
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": { ... }
-}
-```
-
----
-
-## 5. 代码规范
-
-### 5.1 必须遵守
-
-- {规范1}
-- {规范2}
-
-### 5.2 推荐做法
-
-- {推荐1}
-- {推荐2}
-
----
-
-## 6. 可检索关键词
-
-`{命名约定}` / `{包名}` / `{异常名}` / `{规范名}`
-
----
-
-## 7. 导航
-
-- ↑ 上级: [系统总览](00-index.md)
-- ← 相关: [数据模型](04-data-model.md)
-- ↓ 深入: [模块层索引](../02-modules/00-index.md)
+- ↑ 上级: [System Index](index.md)
+- ← 相关: [data-model.md](data-model.md)
+- ↓ 深入: [Modules Index](../02-modules/index.md)

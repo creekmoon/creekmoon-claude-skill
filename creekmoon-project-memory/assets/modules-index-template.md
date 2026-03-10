@@ -1,54 +1,41 @@
 ---
-description: 子层索引 - 所有业务模块清单与链路文档两级视图
+layer: module
+doc_type: index
+module: global
+topic: module-index
+aliases:
+  - module index
+  - business modules
+symbols: []
+related:
+  - ../00-index.md
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
 ---
 
-# 模块清单
+# Modules Index
 
-> 本项目按业务领域划分为以下模块。两级索引：模块 → 每模块的链路文档。
+> 模块目录块。这里只列模块和一句话职责。
 
----
+## 1. Modules
 
-## 完整知识树
+| Module | Responsibility | Primary Doc |
+|--------|----------------|-------------|
+| `{module-a}` | {一句话职责} | [mod-{module-a}](mod-{module-a}.md) |
+| `{module-b}` | {一句话职责} | [mod-{module-b}](mod-{module-b}.md) |
 
-### {模块A} — {一句话职责}
+## 2. Rules
 
-→ [mod-{A}.md](mod-{A}.md)
+- 本页不是主题索引
+- 先选模块，再进入对应 `mod-{module}.md`
+- 不在这里列流程、链路、深度主题
 
-- flow: [flow-{流程1}](../03-chains/{A}/flow-{流程1}.md) · {一句话说明}
-- lifecycle: [lifecycle-{实体}](../03-chains/{A}/lifecycle-{实体}.md) · {一句话说明}
-- dataflow: [dataflow-{场景}](../03-chains/{A}/dataflow-{场景}.md) · {一句话说明}
+## 3. Retrieval Keywords
 
-### {模块B} — {一句话职责}
+`{module-a}` / `{module-b}` / `{business-domain}` / `{main-entry}`
 
-→ [mod-{B}.md](mod-{B}.md)
+## 4. Navigation
 
-- flow: [flow-{流程2}](../03-chains/{B}/flow-{流程2}.md) · {一句话说明}
-- interaction: [interaction-{协作}](../03-chains/{B}/interaction-{协作}.md) · {一句话说明}
-- （暂无更多链路文档）
-
----
-
-## 模块依赖图
-
-```mermaid
-flowchart LR
-    A[模块A] -->|调用| B[模块B]
-    A -->|事件| C[模块C]
-    B -->|调用| D[模块D]
-```
-
----
-
-## 按场景查找
-
-| 场景 | 相关模块 |
-|------|----------|
-| {场景1} | [{模块A}](mod-{A}.md) |
-| {场景2} | [{模块B}](mod-{B}.md) |
-
----
-
-## 导航
-
-- ↑ 上级: [系统总览](../01-system/00-index.md)
-- → 各模块: 见上方完整知识树
+- ↑ 上级: [Root Index](../00-index.md)
+- → 相关: [System Index](../01-system/index.md)

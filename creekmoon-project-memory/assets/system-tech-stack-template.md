@@ -1,80 +1,65 @@
 ---
-description: 系统层 - 技术栈、依赖版本
+layer: system
+doc_type: tech-stack
+module: global
+topic: tech-stack
+aliases:
+  - stack
+  - dependencies
+symbols:
+  - `{package.json}`
+  - `{pom.xml}`
+related:
+  - index.md
+  - architecture.md
+  - data-model.md
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
 ---
 
 # 技术栈
 
-## 1. 基础技术
+> 记录系统依赖什么运行、构建、存储和集成能力。
 
-| 类别 | 技术 | 版本 | 用途 |
-|------|------|------|------|
-| 语言 | {Java/TypeScript/Python/Go} | {version} | 开发语言 |
-| 框架 | {SpringBoot/Nest.js/Django/Gin} | {version} | 应用框架 |
-| 构建 | {Maven/Gradle/npm/pnpm} | {version} | 构建工具 |
+## 1. Runtime Stack
 
----
+| Category | Technology | Version | Purpose |
+|----------|------------|---------|---------|
+| Language | {language} | {version} | {用途} |
+| Framework | {framework} | {version} | {用途} |
+| Build Tool | {build-tool} | {version} | {用途} |
 
-## 2. 数据层
+## 2. Storage and Middleware
 
-| 类别 | 技术 | 版本 | 用途 |
-|------|------|------|------|
-| 数据库 | {MySQL/PostgreSQL/MongoDB} | {version} | 主存储 |
-| 缓存 | {Redis} | {version} | 缓存 |
-| ORM | {MyBatis/JPA/Prisma/GORM} | {version} | 数据访问 |
+| Category | Technology | Version | Purpose |
+|----------|------------|---------|---------|
+| Database | {database} | {version} | {用途} |
+| Cache | {cache} | {version} | {用途} |
+| Message Queue | {mq} | {version} | {用途} |
+| Search | {search} | {version} | {用途} |
 
----
+## 3. Ops and Delivery
 
-## 3. 中间件
+| Category | Technology | Purpose |
+|----------|------------|---------|
+| Container | {docker} | {用途} |
+| Orchestration | {k8s} | {用途} |
+| Monitoring | {observability} | {用途} |
 
-| 类别 | 技术 | 版本 | 用途 |
-|------|------|------|------|
-| 消息队列 | {Kafka/RabbitMQ/RocketMQ} | {version} | 异步消息 |
-| 搜索引擎 | {Elasticsearch} | {version} | 全文检索 |
-| 定时任务 | {XXL-Job/Quartz} | {version} | 任务调度 |
+## 4. Important Config Anchors
 
----
+| Config | File | Why It Matters |
+|--------|------|----------------|
+| `{config-key}` | `{path}` | {说明} |
+| `{config-key}` | `{path}` | {说明} |
 
-## 4. 基础设施
+## 5. Retrieval Keywords
 
-| 类别 | 技术 | 版本 | 用途 |
-|------|------|------|------|
-| 容器 | {Docker} | {version} | 容器化 |
-| 编排 | {Kubernetes} | {version} | 容器编排 |
-| 监控 | {Prometheus/Grafana} | {version} | 监控告警 |
+`{tech}` / `{version}` / `{dependency}` / `{config-key}` / `{build-file}`
 
----
+## 6. Navigation
 
-## 5. 关键依赖
-
-```xml
-<!-- 核心依赖示例 -->
-<dependency>
-    <groupId>{group}</groupId>
-    <artifactId>{artifact}</artifactId>
-    <version>{version}</version>
-</dependency>
-```
-
----
-
-## 6. 配置文件
-
-| 配置 | 文件路径 | 说明 |
-|------|----------|------|
-| 应用配置 | `application.yml` | 主配置 |
-| 环境配置 | `application-{env}.yml` | 环境差异化 |
-| 日志配置 | `logback-spring.xml` | 日志规则 |
-
----
-
-## 7. 可检索关键词
-
-`{技术名}` / `{版本号}` / `{配置项}` / `{依赖名}`
-
----
-
-## 8. 导航
-
-- ↑ 上级: [系统总览](00-index.md)
-- ← 相关: [架构概览](02-architecture.md)
-- → 相关: [数据模型](04-data-model.md)
+- ↑ 上级: [System Index](index.md)
+- ← 相关: [architecture.md](architecture.md)
+- → 相关: [data-model.md](data-model.md)

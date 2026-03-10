@@ -1,273 +1,274 @@
-# Agent Memory Skill - Reference
+# LLM Memory Skill V3 Reference
 
-详细的文档编写规范和格式要求。由 [SKILL.md](SKILL.md) 引用，写模式时按需查阅。
+面向 LLM 的目录式记忆文档规范。目标是让模型像查目录块一样，先进入唯一根索引，再逐级下钻，而不是在根层做语义分流。
 
----
+## 1. Single Entry Rule
 
-## 1. 证据锚点格式
+唯一合法首跳：
 
-每条能力记录必须附带以下格式之一的证据锚点：
+- `.agent-memory/00-index.md`
 
-| 类型 | 格式示例 |
-|------|----------|
+任何查询都必须遵循：
+
+1. `00-index.md`
+2. `01-system/index.md` 或 `02-modules/index.md`
+3. `mod-{module}.md` 或系统内容页
+4. `topic-{topic}.md`
+
+禁止：
+
+- 把 `lookup.md` 当首跳
+- 把 `mod-{module}.md` 当首跳
+- 把 `topic-{topic}.md` 当首跳
+- 在根层按“符号问题/场景问题/流程问题”做语义分流
+
+### 1.1 Efficient Continuation Exception
+
+为了效率，允许一个有限例外：
+
+- 如果当前轮已经通过父级 index 明确定位到了某个子路径，可以直接继续读取该子路径
+- 这个例外只适用于“已确认路径的续读”，不适用于“未知路径下的猜测性直达”
+
+例子：
+
+- 先读 `00-index.md` → `02-modules/index.md` → `mod-order.md` 后，当前轮可以直接继续读 `02-modules/order/topic-create-order.md`
+- 但不能在没有经过父级 index 的前提下，直接把 `topic-create-order.md` 当首跳
+
+## 2. Directory Semantics
+
+```text
+00-index.md                         -> 根目录块，只决定下一步进 system 还是 modules
+01-system/index.md                 -> 系统目录块，只列系统事实文档和 lookup
+01-system/lookup.md                -> 唯一反向索引，收符号、别名、场景、故障现象
+02-modules/index.md                -> 模块目录块，只列模块和一句话职责
+02-modules/mod-{module}.md         -> 模块主入口，列边界、入口、主题
+02-modules/{module}/topic-{topic}.md -> 主题叶子，承载主题事实
+```
+
+## 3. Progressive Disclosure Rules
+
+### 3.1 目录块和内容块必须分离
+
+- `index.md` 只负责导航，不负责长解释
+- 内容文档负责事实，不负责充当导航中心
+
+### 3.2 信息密度必须单调增加
+
+- 越上层，细节越少，选择越多
+- 越下层，细节越多，选择越少
+
+### 3.3 不能跳过父级
+
+如果最终要读 `02-modules/order/topic-create-order.md`，必须先经过：
+
+1. `00-index.md`
+2. `02-modules/index.md`
+3. `02-modules/mod-order.md`
+
+## 4. Frontmatter Schema
+
+每篇记忆文档都必须包含以下 frontmatter：
+
+```yaml
+layer: root|system|module|topic
+doc_type: index|context|architecture|tech-stack|data-model|conventions|lookup|module|topic
+module: global|{module}
+topic: {topic}
+aliases:
+  - {别名1}
+symbols:
+  - {ClassName.methodName()}
+related:
+  - {相对路径}
+coverage: stub|partial|complete|deprecated
+last_verified: YYYY-MM-DD
+confidence: low|medium|high
+```
+
+字段要求：
+
+- `aliases`: 用户可能怎么叫它
+- `symbols`: 代码里怎么找到它
+- `related`: 只放父级或最相关的叶子，不放一堆横跳链接
+- `coverage`: 说明覆盖程度
+- `confidence`: 说明验证深度
+
+## 5. Lookup Rules
+
+`01-system/lookup.md` 是唯一反向索引。
+
+用途：
+
+- 符号定位模块
+- 别名定位模块
+- 场景词定位模块
+- 故障现象定位模块
+
+它不是首跳，只能作为 `01-system/index.md` 的子入口。
+
+### 5.1 Growth Rule
+
+`lookup.md` 默认保持单文件，不因为项目变大就主动拆成多个入口文件。
+
+原因：
+
+- 索引天然会变大
+- 单文件 lookup 比多入口 lookup 更稳定
+- 真正要控制的是结构和排序，不是强行拆文件
+
+### 5.2 Organization Rule
+
+`lookup.md` 必须满足：
+
+1. 按模块分段，或按稳定的键顺序组织
+2. 每条记录都落到 `mod-{module}.md`
+3. 有主题时再落到对应 `topic-{topic}.md`
+4. 不在 lookup 中写主题细节摘要
+
+### 5.3 Split Only When Tooling Breaks
+
+只有当单文件 lookup 已经因为工具读取/搜索限制而明显不可用时，才允许拆分。
+
+默认拆分方式：
+
+- 仍保留一个 `lookup.md` 作为总入口
+- 由 `lookup.md` 指向分段文件
+- 分段文件只能作为 `lookup.md` 的子页，不得成为新的首跳入口
+
+推荐格式：
+
+```markdown
+| Key | Kind | Module | Primary Doc | Topic |
+|-----|------|--------|-------------|-------|
+| `OrderService.createOrder()` | symbol | `order` | [mod-order](../02-modules/mod-order.md) | [topic-create-order](../02-modules/order/topic-create-order.md) |
+| 下单 | alias | `order` | [mod-order](../02-modules/mod-order.md) | [topic-create-order](../02-modules/order/topic-create-order.md) |
+| 订单重复创建 | symptom | `order` | [mod-order](../02-modules/mod-order.md) | [topic-order-idempotency](../02-modules/order/topic-order-idempotency.md) |
+```
+
+## 6. Fact Placement Rules
+
+| 信息类型 | 正确位置 | 不该出现的位置 |
+|----------|----------|----------------|
+| 项目背景、边界、技术选型 | `01-system/*.md` | `topic-{topic}.md` |
+| 符号/别名/场景词到模块的映射 | `01-system/lookup.md` | 根索引 |
+| 模块职责、拥有入口、主题清单 | `mod-{module}.md` | 根索引 |
+| 主题流程、关键分支、异常现象、边界处理 | `topic-{topic}.md` | `mod-{module}.md` |
+
+规则：
+
+- `mod-{module}.md` 只给主题摘要，不展开主题内部逻辑
+- `topic-{topic}.md` 同时承载“怎么走 + 为什么这样走 + 边界情况”
+- 不再把主题拆成 `flow` / `logic` / `interaction` 等多篇首跳文档
+
+## 7. Index Size Rules
+
+为了避免头重脚轻：
+
+- `00-index.md` 建议控制在 80-120 行
+- 同一层 index 的可选项尽量不超过 7-9 个
+- 根索引只允许出现两类下一跳：`01-system/index.md` 与 `02-modules/index.md`
+- `mod-{module}.md` 只列本模块的 3-8 个核心主题
+
+### 7.1 Module Growth Rules
+
+`mod-{module}.md` 只保留：
+
+- 模块边界
+- 模块拥有入口
+- 主题清单
+- 少量模块级关键词
+
+出现以下情况时，不允许继续往 `mod-{module}.md` 追加，而应改为新建或补充 topic：
+
+1. 开始解释某个主题的完整步骤
+2. 开始解释某个主题的关键条件分支
+3. 开始解释某个主题的边界情况或异常现象
+4. 某个新增内容只能回答“这个主题怎么走/为什么这样走”，而不是“这个模块负责什么”
+
+### 7.2 Topic Split Triggers
+
+`topic-{topic}.md` 必须保持单主题边界。
+
+出现以下任一情况时，应拆成新的 `topic-*.md`，而不是继续并入旧 topic：
+
+1. 新增内容对应不同入口方法或不同主 API
+2. 新增内容回答的是另一类独立问题，而不是当前主题的自然分支
+3. 新增内容形成另一组独立的异常/边界处理族
+4. 读者如果只想理解原主题，却被迫同时理解另一条主题主线
+
+判断原则：
+
+- “同一主题的自然分支”可以并入
+- “另一条可独立命名的主题主线”必须拆出
+
+## 8. Evidence Anchors
+
+每条事实都必须带证据锚点，推荐格式：
+
+| 类型 | 示例 |
+|------|------|
 | 类 | `OrderService` (`src/service/OrderService.java`) |
 | 方法 | `OrderService.createOrder()` |
 | 路由 | `POST /api/v1/orders` |
 | 配置 | `application.yml:order.max-items` |
-| 数据库 | `t_order` 表 |
+| 表 | `t_order` |
 | 消息 | `ORDER_CREATED` Topic |
 
----
+不要写无锚点陈述。
 
-## 2. 文档通用格式
+## 9. Verification Rules
 
-每个文档应遵循以下结构：
+写入前必须验证：
 
-```markdown
-# 文档标题
-
-> 一句话定位/摘要
-
-## 1. 章节名
-
-### 1.1 子章节
-
-- **关键词**: 值（证据锚点）
-- **关键词**: 值（证据锚点）
-
-## N. 可检索关键词
-
-`关键词1` / `关键词2` / `ClassName` / `/api/path` / `table_name`
-
-## N+1. 导航
-
-- ↑ 上级: [系统总览](../01-system/00-index.md)
-- → 相关: [模块-XX](mod-xx.md)
-- ↓ 链路: [链路文档](../03-chains/xx/)
-- ↓↓ 深度: [深度文档](../04-deep/xx/)
-```
-
-**索引文件（00-index.md）的特殊格式**：
-
-`00-index.md` 不使用普通导航 footer，而是使用「完整知识树」节展示两级视图（见第 9 节）。普通文档保持 ↑↓→ footer 不变。
-
----
-
-## 3. 正反示例
-
-**❌ Bad** — 无锚点、模糊：
-```markdown
-## 已实现能力
-
-- 实现了订单管理功能
-- 支持多种支付方式
-- 有完善的错误处理
-```
-
-**✅ Good** — 有锚点、具体：
-```markdown
-## 已实现能力
-
-- **订单创建**: `OrderService.create()` (`src/service/OrderService.java:45`)
-  - 商品校验: `ProductValidator.validate()`
-  - 库存扣减: `InventoryService.deduct()`
-
-- **支付集成**: `PaymentController` (`src/controller/PaymentController.java`)
-  - 支付宝: `POST /api/payment/alipay`
-  - 微信: `POST /api/payment/wechat`
-
-- **错误码体系**: `ErrorCode` 枚举 (`src/constant/ErrorCode.java`)
-  - `ORDER_NOT_FOUND` (1001)
-  - `PAYMENT_FAILED` (2001)
-```
-
----
-
-## 4. Mermaid 图表规范
-
-链路层（03-chains）使用 Mermaid 图表达复杂逻辑，优先于纯文字描述。
-
-### 状态机图 (生命周期)
-
-```mermaid
-stateDiagram-v2
-    [*] --> 待支付: 创建订单
-    待支付 --> 已支付: 支付回调
-    待支付 --> 已取消: 超时/取消
-    已支付 --> 已发货: 发货
-    已发货 --> 已完成: 签收
-    已支付 --> 退款中: 申请退款
-    退款中 --> 已退款: 退款成功
-```
-
-### 序列图 (模块交互)
-
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant OC as OrderController
-    participant OS as OrderService
-    participant PS as PaymentService
-
-    C->>OC: POST /orders
-    OC->>OS: createOrder()
-    OS->>PS: initiatePayment()
-    PS-->>OS: paymentUrl
-    OS-->>OC: OrderDTO
-    OC-->>C: 201 Created
-```
-
-### 数据流图
-
-```mermaid
-flowchart LR
-    A[Client] -->|HTTP| B[API Gateway]
-    B -->|Route| C[OrderService]
-    C -->|Write| D[(OrderDB)]
-    C -->|Publish| E[EventBus]
-    E -->|Consume| F[NotificationService]
-```
-
----
-
-## 5. 写入判断表（代码事实验证）
-
-写入记忆前，必须对每个证据锚点进行代码事实验证：
-
-| 验证维度 | 方法 | 通过条件 | 不通过则 |
-|----------|------|----------|----------|
-| **存在性** | Grep 搜索类名/方法名 | 代码中确实存在该符号 | 不写入该锚点 |
-| **完整性** | Read 查看方法体 | 非空实现，无 TODO/FIXME/HACK | 不写入或标注为部分实现 |
-| **可用性** | Grep 搜索调用方 | 有实际调用链，非死代码 | 不写入 |
-| **排除检查** | Read 查看注解/标记 | 无 @Deprecated、非 mock、非注释代码 | 不写入 |
-
-### 场景判断
-
-| 场景 | 是否写入 | 原因 |
-|------|----------|------|
-| 方法体是空实现/TODO | ❌ | 未开发完毕 |
-| 有 @Deprecated 标记 | ❌ | 即将废弃 |
-| 仅在测试中被调用 (mock) | ❌ | 非生产代码 |
-| feature flag 关闭状态 | ❌ | 功能未启用 |
-| 代码被注释掉 | ❌ | 非活跃代码 |
-| **方法实现完整 + 有调用链** | **✅** | 经验证的事实 |
-| 紧急回滚/删除后 | ✅ | 需同步回退文档 |
-
----
-
-## 6. 记忆文档定位
-
-| 用途 | 正确位置 | 错误位置 |
+| 维度 | 检查方式 | 通过条件 |
 |------|----------|----------|
-| 开发中的需求 | 需求文档/TODO/Comments | ❌ `.agent-memory/` |
-| 技术方案讨论 | RFC/设计文档/PR描述 | ❌ `.agent-memory/` |
-| 经代码验证的实现 | ✅ `.agent-memory/` | — |
-| 历史变更记录 | Git历史/CHANGELOG | ❌ `.agent-memory/` |
+| 存在性 | 搜索符号 | 代码中真实存在 |
+| 完整性 | 阅读关键实现 | 非空实现，无明显占位 |
+| 可用性 | 搜索调用方/入口 | 有实际调用链或配置生效 |
+| 排除项 | 抽查注解/开关 | 非废弃、非 mock、非注释代码 |
 
----
+以下内容不进入记忆：
 
-## 7. 各层约束详细
+- 开发中的需求
+- 技术方案讨论
+- PR 描述
+- TODO 列表
+- 仅测试可见的 mock 逻辑
 
-### 层间关系（树状，非平行）
+## 10. Good vs Bad
 
+**Bad**
+
+```markdown
+# 订单模块
+
+- 有下单流程
+- 有异常处理
+- 有一些边界判断
 ```
-01-system（根层） → 02-modules（子层） → 03-chains（链路层） → 04-deep（深度层）
+
+**Good**
+
+```markdown
+# order 模块
+
+- **主入口**: `OrderService.createOrder()`
+- **主题**: [topic-create-order](order/topic-create-order.md)
+- **主题**: [topic-order-idempotency](order/topic-order-idempotency.md)
 ```
 
-- 根层是整棵树的入口，记录系统全景，不直接记录业务细节
-- 子层从根层链出，每个模块文档是根层的子节点
-- 链路层从子层链出，回答"哪个方法调用哪个方法" — 适合序列图/状态机
-- 深度层从链路层链出，回答"某处内部发生了什么" — 适合条件树/算法步骤
-- **导航只向下链出，不跨层跳转**（除 00-index 的两级视图外）
+## 11. Template Index
 
-### System layer (01-system/)
-
-- 总计 ≤ 500 行
-- 只记录稳定、不易变的信息
-- 核心数据实体控制在 5-10 个
-- 禁止：具体接口列表、字段详情
-
-### Module layer (02-modules/)
-
-- 每篇 ≤ 300 行
-- 按业务领域划分（非技术分层）
-- 入口类/方法 3-15 个
-- 核心流程 5-10 步概要
-- 禁止：长篇代码示例，用类名/方法名代替
-
-### Chains layer (03-chains/)
-
-- 按模块创建子目录: `03-chains/{模块名}/`
-- 文档类型：`flow-*`、`lifecycle-*`、`dataflow-*`、`interaction-*`
-- 使用 Mermaid 图优先于文字描述，精确到方法调用级别
-- 代码执行链精确到类名+方法名，不展示代码内容
-- 禁止：直接贴原始代码
-
-### Deep layer (04-deep/)
-
-- 按模块创建子目录: `04-deep/{模块名}/`
-- 文档类型：`logic-*`（复杂场景的代码级逻辑）
-- **创建时机**：仅当某场景包含多层嵌套条件、非显而易见的边界逻辑、或复杂数据状态变化时
-- 每篇聚焦**单一**复杂场景，不混写多个场景
-- 禁止：直接贴原始代码、多场景混写
-
----
-
-## 8. 模板文件索引
-
-| 模板文件 | 生成目标 |
+| 模板文件 | 目标文件 |
 |----------|----------|
-| `assets/system-index-template.md` | `01-system/00-index.md` |
-| `assets/system-context-template.md` | `01-system/01-context.md` |
-| `assets/system-architecture-template.md` | `01-system/02-architecture.md` |
-| `assets/system-tech-stack-template.md` | `01-system/03-tech-stack.md` |
-| `assets/system-data-model-template.md` | `01-system/04-data-model.md` |
-| `assets/system-conventions-template.md` | `01-system/05-conventions.md` |
-| `assets/modules-index-template.md` | `02-modules/00-index.md` |
-| `assets/module-template.md` | `02-modules/mod-{领域}.md` |
-| `assets/deep-index-template.md` | `03-chains/00-index.md` |
-| `assets/deep-flow-template.md` | `03-chains/{模块}/flow-{流程}.md` |
-| `assets/deep-lifecycle-template.md` | `03-chains/{模块}/lifecycle-{实体}.md` |
-| `assets/deep-dataflow-template.md` | `03-chains/{模块}/dataflow-{场景}.md` |
-| `assets/deep-interaction-template.md` | `03-chains/{模块}/interaction-{协作}.md` |
-| `assets/deep-index-v4-template.md` | `04-deep/00-index.md` |
-| `assets/deep-logic-template.md` | `04-deep/{模块}/logic-{复杂场景}.md` |
-
----
-
-## 9. 索引文件两级视图规范
-
-所有 `00-index.md`（根层和子层）必须展示**往下两级**的内容，让读者无需打开子文档即可判断导航路径。
-
-**❌ Bad** — 只有一级，无法判断链路文档是否存在：
-
-```markdown
-| 模块A | 职责描述 | [mod-A.md](mod-A.md) |
-```
-
-**✅ Good** — 两级视图，一眼看到模块 + 其链路文档：
-
-```markdown
-### 模块A — 职责描述
-
-→ [mod-A.md](mod-A.md)
-
-- flow: [flow-下单](../03-chains/A/flow-下单.md) · 处理订单创建到支付完成
-- lifecycle: [lifecycle-Order](../03-chains/A/lifecycle-Order.md) · 订单状态机全流程
-- （暂无更多链路文档）
-```
-
-**格式规则**：
-- 模块标题行：`### {模块名} — {一句话职责}`
-- 模块链接行：`→ [{模块文档}]({路径})`
-- 链路文档条目：`- {类型}: [{链接名}]({路径}) · {一句话说明}`
-- 若无链路文档：`- （暂无链路文档）`，不留空
-
-**各层 00-index 的两级范围**：
-
-| 索引文件 | 第一级 | 第二级 |
-|----------|--------|--------|
-| `01-system/00-index.md` | 模块（子层） | 每模块的链路文档（链路层） |
-| `02-modules/00-index.md` | 模块（子层） | 每模块的链路文档（链路层） |
-| `03-chains/00-index.md` | 链路文档（链路层） | 每链路文档关联的深度文档（深度层） |
-| `04-deep/00-index.md` | 深度文档（深度层） | 无下级（叶节点，用表格列出场景说明） |
+| `assets/root-index-template.md` | `.agent-memory/00-index.md` |
+| `assets/system-index-template.md` | `.agent-memory/01-system/index.md` |
+| `assets/system-lookup-template.md` | `.agent-memory/01-system/lookup.md` |
+| `assets/system-context-template.md` | `.agent-memory/01-system/context.md` |
+| `assets/system-architecture-template.md` | `.agent-memory/01-system/architecture.md` |
+| `assets/system-tech-stack-template.md` | `.agent-memory/01-system/tech-stack.md` |
+| `assets/system-data-model-template.md` | `.agent-memory/01-system/data-model.md` |
+| `assets/system-conventions-template.md` | `.agent-memory/01-system/conventions.md` |
+| `assets/modules-index-template.md` | `.agent-memory/02-modules/index.md` |
+| `assets/module-template.md` | `.agent-memory/02-modules/mod-{module}.md` |
+| `assets/topic-template.md` | `.agent-memory/02-modules/{module}/topic-{topic}.md` |

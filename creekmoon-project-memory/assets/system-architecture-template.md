@@ -1,95 +1,61 @@
 ---
-description: 系统层 - 架构概览、组件关系
+layer: system
+doc_type: architecture
+module: global
+topic: system-architecture
+aliases:
+  - architecture
+  - topology
+symbols:
+  - `{Application}`
+related:
+  - index.md
+  - context.md
+  - tech-stack.md
+  - ../02-modules/index.md
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
 ---
 
 # 架构概览
 
-## 1. 架构风格
+> 解释系统如何组织、主要组件如何协作，以及主要运行边界在哪里。
 
-{微服务 / 单体分层 / 六边形架构 / CQRS / 事件驱动 ...}
+## 1. Architecture Style
 
----
+{单体分层 / 微服务 / 事件驱动 / 六边形架构 / CQRS ...}
 
-## 2. 分层架构
+## 2. Runtime Layers
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              Presentation Layer (表现层)              │
-│    Controller / Router / Handler / GraphQL Resolver   │
-├─────────────────────────────────────────────────────────┤
-│              Application Layer (应用层)               │
-│    Service / UseCase / ApplicationService / Facade    │
-├─────────────────────────────────────────────────────────┤
-│                Domain Layer (领域层)                  │
-│        Entity / DomainService / Repository / Event    │
-├─────────────────────────────────────────────────────────┤
-│           Infrastructure Layer (基础设施层)           │
-│    RepositoryImpl / Client / Mapper / MessageProducer │
-└─────────────────────────────────────────────────────────┘
-```
+| Layer | Responsibility | Code Location |
+|-------|----------------|---------------|
+| Presentation | {处理请求、参数校验、协议转换} | `{path}` |
+| Application | {编排用例、事务边界} | `{path}` |
+| Domain | {核心业务规则、领域对象} | `{path}` |
+| Infrastructure | {存储、外部调用、消息} | `{path}` |
 
-### 2.1 各层职责
+## 3. Core Components
 
-| 层级 | 职责 | 代码位置 |
-|------|------|----------|
-| 表现层 | 处理HTTP请求/响应，参数校验 | `{controller包路径}` |
-| 应用层 | 编排领域逻辑，事务边界 | `{service包路径}` |
-| 领域层 | 核心业务逻辑，领域模型 | `{domain包路径}` |
-| 基础设施层 | 数据访问，外部调用，消息 | `{infra包路径}` |
+| Component | Type | Responsibility | Entry Anchor |
+|-----------|------|----------------|--------------|
+| `{component-a}` | {service/module} | {职责} | `{ClassName}` |
+| `{component-b}` | {service/module} | {职责} | `{ClassName}` |
 
----
+## 4. Module Interaction Summary
 
-## 3. 核心组件
+| From | To | Why |
+|------|----|-----|
+| `{module-a}` | `{module-b}` | {调用原因} |
+| `{module-b}` | `{external-system}` | {依赖原因} |
 
-| 组件 | 类型 | 职责 | 入口类 |
-|------|------|------|--------|
-| {组件A} | {服务/模块} | {职责} | `{ClassName}` |
-| {组件B} | {服务/模块} | {职责} | `{ClassName}` |
+## 5. Retrieval Keywords
 
----
+`{architecture-style}` / `{component}` / `{app-entry}` / `{config-key}` / `{runtime-boundary}`
 
-## 4. 模块划分
+## 6. Navigation
 
-> 详见 [模块层索引](../02-modules/00-index.md)
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    {模块A}                            │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
-│  │   子模块A1    │  │   子模块A2    │  │   子模块A3    │  │
-│  └─────────────┘  └─────────────┘  └─────────────┘  │
-├─────────────────────────────────────────────────────────┤
-│                    {模块B}                            │
-│  ┌─────────────┐  ┌─────────────┐              │
-│  │   子模块B1    │  │   子模块B2    │              │
-│  └─────────────┘  └─────────────┘              │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 5. 部署架构 (可选)
-
-```
-[Client] --> [Load Balancer] --> [App Server xN]
-                                      |
-                                      v
-                              [Database Cluster]
-                                      |
-                              [Cache / MessageQueue]
-```
-
----
-
-## 6. 可检索关键词
-
-`{架构风格}` / `{技术组件1}` / `{技术组件2}` / `{核心类}` / `{配置项}`
-
----
-
-## 7. 导航
-
-- ↑ 上级: [系统总览](00-index.md)
-- ← 相关: [项目上下文](01-context.md)
-- → 相关: [技术栈](03-tech-stack.md)
-- ↓ 深入: [模块层索引](../02-modules/00-index.md)
+- ↑ 上级: [System Index](index.md)
+- ← 相关: [context.md](context.md)
+- → 相关: [tech-stack.md](tech-stack.md)
+- ↓ 深入: [Modules Index](../02-modules/index.md)

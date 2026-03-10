@@ -1,192 +1,142 @@
 ---
 name: agent-memory-skill
-description: 项目记忆缓存系统（.agent-memory/）。项目存在 .agent-memory/ 目录时，在任何涉及代码的任务前自动读取记忆获取上下文。Use when writing code, modifying code, debugging, reviewing code, refactoring, adding features, fixing bugs, understanding codebase, answering code questions, or when user mentions "分析项目", "建立记忆", "更新记忆", "了解项目", "接手项目". If .agent-memory/ exists, ALWAYS read relevant memory before starting any code task.
+description: 面向 LLM 的单入口目录式项目记忆系统（.agent-memory/）。当项目存在 .agent-memory/ 时，在任何涉及代码的任务前先读取 `00-index.md`，然后严格按目录树逐级进入 `01-system/index.md` 或 `02-modules/index.md`，最后再进入模块叶子主题文档。Use when writing code, modifying code, debugging, reviewing code, refactoring, adding features, fixing bugs, understanding codebase, answering code questions, or when user mentions "分析项目", "建立记忆", "更新记忆", "了解项目", "接手项目". If .agent-memory/ exists, ALWAYS start from `00-index.md` and follow parent indexes before reading leaf docs.
 ---
 
-# Agent Memory Skill
+# LLM Memory Skill V3
 
-渐进式项目记忆系统。通过四层文档结构让 AI 快速理解项目全貌，按需深入细节。
+面向 LLM 的目录式项目记忆系统。目标不是“最快直达某篇文档”，而是“稳定地沿目录块逐级下钻，避免多首跳和语义分流”。
 
-**核心原则**: `.agent-memory/` 只记录**经代码验证的事实**，不记录未实现/开发中/WIP 内容。
+**核心原则**: `.agent-memory/` 只记录经代码验证的事实，只保留稳定、可检索、按目录逐级暴露的信息。
 
-## Quick start
+## Quick Start
 
-- **任何代码任务** → 检查 `.agent-memory/` 是否存在，存在则先读取相关记忆
-- **接手项目** → 从 `.agent-memory/01-system/00-index.md` 开始阅读
-- **建立记忆** → 按 根层 → 子层 → 链路层 → 深度层 顺序创建文档
-- **更新记忆** → 验证代码事实后，更新对应层级文档
+- **任何代码任务**: 若存在 `.agent-memory/`，先读 `.agent-memory/00-index.md`
+- **根入口只有一个**: 不允许从 `system`、`modules` 或任何叶子文档直接作为首跳
+- **严格逐级进入**: 根目录块 → 子目录块 → 模块主入口 → 主题叶子
+- **目录块只导航**: `index.md` 只回答“下一跳去哪”
+- **叶子只讲事实**: `topic-{topic}.md` 才回答“怎么走、为什么这样走、边界情况是什么”
+- **效率优先**: 默认逐级跳转，但如果当前轮已经由父级 index 明确定位到子路径，可直接继续读取该子路径，不必回退到根
 
-## Mode detection
-
-**第 0 步**: 检查项目根目录是否存在 `.agent-memory/` 目录。
-
-| 场景 | 模式 | 动作 |
-|------|------|------|
-| 有 `.agent-memory/` + 任何涉及代码的任务 | **读模式-自动** | 静默读取相关记忆，辅助当前任务 |
-| "帮我了解/接手这个项目" | **读模式-全量** | 按顺序阅读全部文档，向用户汇报 |
-| "分析项目，建立记忆文档" | **写模式-初始化** | 扫描+验证代码，创建文档体系 |
-| "XX已完成，更新记忆" | **写模式-更新** | 验证代码事实后更新对应文档 |
-
-## Document structure
+## Directory Truth
 
 ```
 .agent-memory/
-├── 01-system/                    # 根层：全景概览（首先读）
-│   ├── 00-index.md              # 入口，两级索引（模块 + 每模块的链路文档列表）
-│   ├── 01-context.md            # 项目上下文
-│   ├── 02-architecture.md       # 架构概览
-│   ├── 03-tech-stack.md         # 技术栈
-│   ├── 04-data-model.md         # 核心数据模型
-│   └── 05-conventions.md        # 全局约定
-│
-├── 02-modules/                   # 子层：业务领域，从系统层链出（按需读）
-│   ├── 00-index.md              # 两级索引（模块 + 每模块的链路文档列表）
-│   └── mod-{领域}.md            # 第8节→03-chains链路文档，第9节→04-deep文档
-│
-├── 03-chains/                    # 链路层：方法调用链、状态机、跨模块序列
-│   ├── 00-index.md              # 两级索引（链路文档 + 每文档关联的deep文档）
-│   └── {模块名}/                # 按模块组织的链路文档
-│       ├── flow-{流程}.md       # 业务流程（方法级序列图）
-│       ├── lifecycle-{实体}.md  # 实体状态机（精确到触发方法）
-│       ├── dataflow-{场景}.md   # 数据流转路径
-│       └── interaction-{协作}.md # 跨模块调用链
-│
-└── 04-deep/                      # 深度层：复杂场景的代码级业务逻辑
-    ├── 00-index.md              # 按模块组织的深度文档索引
-    └── {模块名}/                # 按模块组织的深度文档
-        └── logic-{复杂场景}.md  # 某难点的代码级执行细节
+├── 00-index.md
+├── 01-system/
+│   ├── index.md
+│   ├── context.md
+│   ├── architecture.md
+│   ├── tech-stack.md
+│   ├── data-model.md
+│   ├── conventions.md
+│   └── lookup.md
+├── 02-modules/
+│   ├── index.md
+│   └── mod-{module}.md
+└── 02-modules/{module}/
+    └── topic-{topic}.md
 ```
 
-**层间粒度区分**:
-- `03-chains`: "哪个方法调用哪个方法，按什么顺序" — 序列图/状态机
-- `04-deep`: "某个复杂难点内部发生了什么" — 条件判断、算法步骤、边界处理
+## Read Mode
 
----
-
-## Instructions: Read mode
-
-### Scenario A: Auto-context (自动上下文 — 最常用)
+### Scenario A: Auto Context
 
 任何涉及代码的任务触发时：
 
-1. 读 `01-system/00-index.md` → 获取系统定位和模块清单（两级索引可直接看到链路文档）
-2. 根据任务内容定位相关模块 → 读 `02-modules/mod-{模块}.md`
-3. 需要调用链/流程细节时 → 读 `03-chains/{模块名}/` 下对应文档
-4. 需要代码级逻辑细节时 → 读 `04-deep/{模块名}/logic-*.md`
-5. **静默使用上下文**，不主动向用户转述记忆内容（除非被问到）
+1. 读 `.agent-memory/00-index.md`
+2. 只在根层做一次选择：
+   - 系统级问题 → `01-system/index.md`
+   - 模块级问题 → `02-modules/index.md`
+3. 如果进入 `01-system/index.md`：
+   - 需要背景/架构/技术栈/模型/约定 → 读对应系统内容页
+   - 需要通过符号、别名、场景词定位模块 → 读 `01-system/lookup.md`
+4. 如果进入 `02-modules/index.md`：
+   - 先定位模块，再读 `02-modules/mod-{module}.md`
+5. 若模块主入口仍不够，再读 `02-modules/{module}/topic-{topic}.md`
+6. 如果当前轮已经由父级 index 明确得到了某个子路径，可直接继续该子路径，不必反复回退
+7. 不在未知路径情况下把叶子文档当首跳
+8. 够用就停，不默认全量阅读
+9. 静默使用上下文，除非用户要求，不主动复述全部记忆
 
-### Scenario B: Onboarding (接手项目)
+### Scenario B: Onboarding
 
-按以下顺序阅读，由浅入深，并向用户汇报：
+用户让你“接手项目/了解项目”时：
 
-1. `01-system/00-index.md` → 系统定位和模块全景
-2. `01-system/01-context.md` → 项目背景和边界
-3. `01-system/02-architecture.md` → 架构分层
-4. `01-system/03-tech-stack.md` → 技术选型
-5. `02-modules/00-index.md` → 模块清单
-6. 根据任务选择 `mod-{相关模块}.md` 深入
+1. `00-index.md`
+2. `01-system/index.md`
+3. 只按需要读 `context.md`、`architecture.md`、`tech-stack.md`
+4. `02-modules/index.md`
+5. 选相关模块，读 `mod-{module}.md`
+6. 只在需要时进入 `topic-{topic}.md`
 
----
+## Efficiency Rules
 
-## Instructions: Write mode
+1. **新查询**: 默认从 `00-index.md` 开始
+2. **同轮续读**: 如果当前轮已经通过父级目录确认了精确子路径，允许直接续读该子路径
+3. **不猜兄弟节点**: 不并行试读多个模块或多个 topic，除非父级索引明确提示它们都相关
+4. **不为形式回退**: 已经确认 `mod-{module}.md` 或 `topic-{topic}.md` 与当前问题直接相关时，不必为了遵守流程再次回到根目录重读
+5. **默认停在最浅可用层**: 模块文档足够回答时，不进入 topic
 
-### Verification baseline (写入底线)
+## Write Mode
 
-**每条记录写入前，必须完成代码事实验证：**
+### Verification Baseline
 
-1. **存在性**: 用 Grep/Read 确认类名/方法名/路由确实存在于代码中
-2. **完整性**: Read 抽查方法体，确认非空实现，不含 `TODO`/`FIXME`/`HACK`/`NotImplementedException`
-3. **可用性**: 有实际调用链（非孤立死代码），配置/依赖已就绪（非注释掉的配置）
+写入前，每条事实都必须完成下列验证：
+
+1. **存在性**: 用搜索和阅读确认类名、方法名、路由、表名、Topic 真实存在
+2. **完整性**: 抽查关键实现，确认不是空实现，也不是 `TODO`、`FIXME`、`HACK`
+3. **可用性**: 有实际调用方、入口或配置支撑，不是孤立死代码
 4. **排除项**:
-   - ❌ `@Deprecated` / `deprecated` 标记的代码
-   - ❌ 测试类/测试方法中的 mock 实现
-   - ❌ 注释掉的代码块
-   - ❌ feature flag 关闭状态的功能
-   - ❌ 开发中(WIP)、实验性、临时方案
+   - `@Deprecated` / `deprecated`
+   - 测试 mock
+   - 注释掉的代码
+   - 默认关闭的 feature flag
+   - WIP / 实验性 / 临时方案
 
-**验证方法**: 对每个证据锚点，Grep 确认符号存在 + Read 抽查关键方法确认非空实现。不确定的不写。
+不确定的不写。
 
-### Scenario C: Initial setup (首次建立)
+### Scenario C: Initial Setup
 
-**Step 1 — 探索项目**
-- 扫描项目结构（pom.xml/package.json、目录树、配置文件）
-- 识别技术栈、架构风格、业务领域划分
+1. 先创建 `.agent-memory/00-index.md`
+2. 建 `01-system/`，从 `index.md` 开始，再补系统事实内容页和 `lookup.md`
+3. 建 `02-modules/`，先写 `index.md`，再按业务领域创建 `mod-{module}.md`
+4. 仅为真正需要深入的主题创建 `02-modules/{module}/topic-{topic}.md`
+5. 每次新增模块或主题文档时，同步更新：
+   - `00-index.md`
+   - `01-system/index.md`
+   - `01-system/lookup.md`
+   - `02-modules/index.md`
+   - 对应 `mod-{module}.md`
 
-**Step 2 — 创建根层** (`01-system/`)
-- 使用 `assets/system-*-template.md` 模板
-- 从 `00-index.md` 开始，依次填充 01~05
-- 约束: 全部控制在 500 行以内，只记录稳定信息
+### Scenario D: Post-change Update
 
-**Step 3 — 创建子层** (`02-modules/`)
-- 按业务领域划分（不按技术分层）
-- 使用 `assets/module-template.md` 模板
-- 约束: 每篇 ≤ 300 行，用类名/方法名代替代码示例
+1. 先验证变更已真实落代码
+2. 按影响面更新对应层级：
+   - 系统定位、技术栈、约定变化 → `01-system/`
+   - 模块边界、能力、入口变化 → `02-modules/mod-{module}.md`
+   - 某主题的流程、边界、异常现象变化 → `02-modules/{module}/topic-{topic}.md`
+3. 任何新增或失效的类名、方法名、路由、别名、场景词，都要同步更新 `01-system/lookup.md`
 
-**Step 4 — 创建链路层** (`03-chains/`) — 按需
-- 为每个需要深入的模块创建子目录
-- 使用 `assets/deep-*-template.md` 模板（flow/lifecycle/dataflow/interaction）
-- 约束: 使用 Mermaid 序列图/状态图，精确到方法调用级别，禁止贴原始代码
+## Layer Rules
 
-**Step 5 — 创建深度层** (`04-deep/`) — 按需
-- 仅为真正复杂、易出错的场景创建
-- 使用 `assets/deep-logic-template.md` 模板
-- 约束: 精确到条件判断和算法步骤，聚焦单一复杂场景
+| 层级 | 目录 | 回答的问题 | 必须避免 |
+|------|------|------------|----------|
+| 根目录块 | `00-index.md` | 下一步进 system 还是 modules？ | 系统细节、模块细节 |
+| 系统目录块 | `01-system/index.md` | 系统文档有哪些，lookup 在哪？ | 具体模块主题 |
+| 模块目录块 | `02-modules/index.md` | 有哪些模块，先看哪个模块？ | 主题细节 |
+| 模块主入口 | `02-modules/mod-{module}.md` | 这个模块负责什么，有哪些主题？ | 全量系统说明 |
+| 主题叶子 | `02-modules/{module}/topic-{topic}.md` | 这个主题怎么走、为什么这样走、边界是什么？ | 再承担导航中心 |
 
-**Step 6 — 验证（必须）**
-- 对所有证据锚点执行 Verification baseline 检查
-- 检查所有文档间链接可达
-- 确保四层间有清晰的导航路径
+## Mandatory Writing Standards
 
-### Scenario D: Post-change update (变更后更新)
+1. 每篇文档都必须带 machine-readable frontmatter
+2. `lookup.md`、`mod-{module}.md`、`topic-{topic}.md` 都必须有 `aliases` 和 `symbols`
+3. 每篇文档都必须有 `coverage`、`last_verified`、`confidence`
+4. 每篇文档都必须有可检索关键词和导航链接
+5. 同一事实只放在最合适的一层，避免跨层重复
+6. 模块按业务领域划分，不按技术目录划分
+7. 目录块只做导航，不承担大段解释
+8. 叶子文档才承担主题事实和复杂解释
 
-**Step 1 — 审查代码现状**
-- 用 Grep/Read 审查变更涉及的代码，确认实现完整且可用
-
-**Step 2 — 识别变更范围**
-- 架构/技术栈变化 → 更新根层（01-system）
-- 模块能力变化 → 更新对应模块文档（02-modules）
-- 调用链/流程/状态机变化 → 更新链路层（03-chains）
-- 核心算法/条件逻辑变化 → 更新深度层（04-deep）
-
-**Step 3 — 执行更新**
-- 只修改受影响的文档
-- 每条新增/修改记录需通过 Verification baseline
-- 删除已废弃的信息
-
----
-
-## Layer rules
-
-| 层级 | 目录 | 行数限制 | 核心内容 | 禁止内容 |
-|------|------|----------|----------|----------|
-| 根层 | `01-system/` | 全部 ≤ 500行 | 定位、架构、技术栈、数据模型、约定 | 具体接口列表、字段详情 |
-| 子层 | `02-modules/` | 每篇 ≤ 300行 | 边界、能力清单(+锚点)、入口类、流程概要 | 长篇代码示例 |
-| 链路层 | `03-chains/` | 按需创建 | 方法调用顺序、状态机、跨模块序列图 | 直接贴原始代码 |
-| 深度层 | `04-deep/` | 按需创建 | 复杂场景的条件判断、算法步骤、边界逻辑 | 直接贴原始代码、多场景混写 |
-
-## Writing standards
-
-1. **证据锚点**: 每条记录必须有可验证的代码锚点（类名/方法名/路由/表名）
-2. **禁止编造**: 不确定的信息不写
-3. **面向检索**: 每个文档包含可检索关键词章节
-4. **导航链接**: 每个文档底部包含 ↑上级 / →相关 / ↓深入 的导航
-5. **模块划分**: 按业务领域划分，不按技术分层
-
-详细格式规范、证据锚点格式、Mermaid 图表规范和正反示例见 [reference.md](reference.md)。
-
-## Templates
-
-模板文件位于本 Skill 的 `assets/` 目录，创建文档时按需使用：
-
-| 层级 | 模板文件 | 生成目标 |
-|------|----------|----------|
-| 根层 | `system-*-template.md` (6个) | `01-system/00~05-*.md` |
-| 子层 | `modules-index-template.md` | `02-modules/00-index.md` |
-| 子层 | `module-template.md` | `02-modules/mod-{领域}.md` |
-| 链路层 | `deep-index-template.md` | `03-chains/00-index.md` |
-| 链路层 | `deep-flow-template.md` | `03-chains/{模块}/flow-{流程}.md` |
-| 链路层 | `deep-lifecycle-template.md` | `03-chains/{模块}/lifecycle-{实体}.md` |
-| 链路层 | `deep-dataflow-template.md` | `03-chains/{模块}/dataflow-{场景}.md` |
-| 链路层 | `deep-interaction-template.md` | `03-chains/{模块}/interaction-{协作}.md` |
-| 深度层 | `deep-index-v4-template.md` | `04-deep/00-index.md` |
-| 深度层 | `deep-logic-template.md` | `04-deep/{模块}/logic-{复杂场景}.md` |
+详细格式、frontmatter、lookup 规则、增长约束、拆分触发和模板映射见 [reference.md](reference.md)。
