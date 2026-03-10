@@ -1,71 +1,50 @@
 ---
-layer: module
+layer: code
 doc_type: module
-module: {module}
-topic: {module}
-aliases:
-  - {业务别名}
-  - {产品别名}
-symbols:
-  - `{EntryClass.method()}`
-  - `{POST /api/path}`
-related:
-  - index.md
-  - {module}/topic-{topic}.md
-coverage: stub
+module: {module-id}
+business_name: {模块业务名称}
+owned_artifacts:
+  - {artifact-id-1}
+  - {artifact-id-2}
+owned_traces:
+  - {artifact-id-1}/trace-{area}
+coverage: complete
 last_verified: YYYY-MM-DD
-confidence: low
+confidence: high
 ---
 
-# {模块名称} 模块
+# {模块业务名称} 模块
 
-> 一句话定位: {这个模块负责什么}
+> 代码归属视图。只回答"这个模块拥有哪些 artifacts / traces"。
+> 业务主叙事在 `01-business/artifacts/` 层，不在这里。
 
-## 1. This Module Answers
+## 1. Module Boundary
 
-- 这个模块负责什么
-- 哪些入口归它拥有
-- 这个模块下有哪些主题叶子
+- **In Scope**：{模块负责的代码范围，如 controller/service/mapper 路径}
+- **Out of Scope**：{明确不属于本模块的，且容易混淆的内容}
 
-## 2. In Scope / Out of Scope
+## 2. Owned Artifacts
 
-### 2.1 In Scope
+| Artifact | 业务名 | Doc |
+|----------|--------|-----|
+| {artifact-id-1} | {业务名} | [artifact-{artifact-id-1}.md](../../01-business/artifacts/artifact-{artifact-id-1}.md) |
+| {artifact-id-2} | {业务名} | [artifact-{artifact-id-2}.md](../../01-business/artifacts/artifact-{artifact-id-2}.md) |
 
-- {能力1}
-- {能力2}
+## 3. Owned Traces
 
-### 2.2 Out of Scope
+| Trace | Artifact | Doc |
+|-------|----------|-----|
+| trace-{area} | {artifact-id} | [trace-{area}.md](../../01-business/artifacts/{artifact-id}/trace-{area}.md) |
 
-- {由其他模块负责的内容}
+## 4. Key Entry Points
 
-## 3. Entry Points and Owned Symbols
+| Kind | Symbol | Artifact |
+|------|--------|----------|
+| API | `{POST /api/path}` | {artifact-id} |
+| Method | `{Service.method()}` | {artifact-id} |
+| Scheduler | `{ScheduledTask.run()}` | {artifact-id} |
 
-| Kind | Anchor | Why It Matters |
-|------|--------|----------------|
-| API | `{POST /api/path}` | {说明} |
-| Method | `{Service.method()}` | {说明} |
-| Table/Topic | `{symbol}` | {说明} |
+## 5. Navigation
 
-## 4. Topics
-
-| Topic | Doc | Why Read It |
-|-------|-----|-------------|
-| {topic-a} | [{module}/topic-{topic-a}.md]({module}/topic-{topic-a}.md) | {说明} |
-| {topic-b} | [{module}/topic-{topic-b}.md]({module}/topic-{topic-b}.md) | {说明} |
-
-## 5. Module Rules
-
-- 本页只回答“这个模块负责什么、拥有哪些入口、有哪些主题”
-- 不在这里展开某个主题的完整步骤、关键分支或边界情况
-- 核心模块不能只停留在本页，必须至少落出 `1-3` 个真正可用于编码的 topic
-- 需要解释“怎么走/为什么这样走”时，进入对应 `topic-{topic}.md`
-- 只有 topic 已不足以承载方法级逻辑时，才新增 `deep-{topic}.md`
-
-## 6. Retrieval Keywords
-
-`{module}` / `{alias}` / `{entry-class}` / `{api}` / `{main-table}` / `{topic}`
-
-## 7. Navigation
-
-- ↑ 上级: [Modules Index](index.md)
-- ↓ 深入: [{module}/topic-{topic}.md]({module}/topic-{topic}.md)
+- ↑ 上级：[03-code/index.md](index.md)
+- → 业务层：[01-business/artifacts/index.md](../../01-business/artifacts/index.md)

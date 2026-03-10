@@ -1,152 +1,161 @@
 ---
 name: agent-memory-skill
-description: 面向 LLM 的单入口目录式项目记忆系统（.agent-memory/）。当项目存在 .agent-memory/ 时，在任何涉及代码的任务前先读取 `00-index.md`，然后按目录树逐级进入 `01-system/index.md` 或 `02-modules/index.md`，再进入模块主入口、主题叶子，必要时谨慎进入 deep 子层。Use when writing code, modifying code, debugging, reviewing code, refactoring, adding features, fixing bugs, understanding codebase, answering code questions, or when user mentions "分析项目", "建立记忆", "更新记忆", "了解项目", "接手项目". If .agent-memory/ exists, ALWAYS start from `00-index.md`, require topic-level memory for core modules, and use deep docs only when topic-level detail is insufficient.
+description: 面向 LLM 的业务产物优先型项目记忆系统（.agent-memory/）。以业务产物+生命周期为主线，倒排索引为检索入口，模块代码归属为辅助视图。Use when writing code, modifying code, debugging, reviewing code, refactoring, adding features, fixing bugs, understanding codebase, answering code questions, or when user mentions "分析项目", "建立记忆", "更新记忆", "了解项目", "接手项目". If .agent-memory/ exists, ALWAYS start from `00-index.md`.
 ---
 
-# LLM Memory Skill V3
+# LLM Memory Skill V4
 
-面向 LLM 的目录式项目记忆系统。目标不是“做一个精简目录”，而是“在渐进式披露前提下，把真正有用的业务主题和代码逻辑沉淀下来”。
+面向 LLM 的业务产物优先型项目记忆系统。
 
-**核心原则**: `.agent-memory/` 只记录经代码验证的事实，只保留稳定、可检索、按目录逐级暴露的信息。
+**核心原则**：文档的组织单位是**业务产物**（artifact）。每个产物清楚回答：为什么存在、谁创建、谁消费、如何流转、如何失败。检索靠人工倒排索引；代码归属是辅助视图，不是主叙事。
 
 ## Quick Start
 
-- **任何代码任务**: 若存在 `.agent-memory/`，先读 `.agent-memory/00-index.md`
-- **根入口只有一个**: 不允许从 `system`、`modules` 或任何叶子文档直接作为首跳
-- **严格逐级进入**: 根目录块 → 子目录块 → 模块主入口 → 主题叶子
-- **目录块只导航**: `index.md` 只回答“下一跳去哪”
-- **主题先于 deep**: 先写出能帮助编码的 topic，再决定是否需要 deep
-- **叶子只讲事实**: `topic-{topic}.md` 负责主题主线、关键决策、边界摘要；`deep-{topic}.md` 负责方法级核心逻辑
-- **效率优先**: 默认逐级跳转，但如果当前轮已经由父级 index 明确定位到子路径，可直接继续读取该子路径，不必回退到根
+- **任何代码任务**：若存在 `.agent-memory/`，先读 `00-index.md`
+- **理解业务产物**：进 `01-business/artifacts/artifact-{artifact}.md`
+- **看完整生命周期**：进 `artifacts/{artifact}/lifecycle.md`
+- **改代码 / 排查副作用**：进 `artifacts/{artifact}/trace-{area}.md`
+- **关键词 / 症状检索**：进 `02-indexes/` 找对应倒排索引
+- **模块代码归属**：进 `03-code/module-{module}.md`
 
 ## Directory Truth
 
 ```
 .agent-memory/
 ├── 00-index.md
-├── 01-system/
+├── 01-business/
 │   ├── index.md
-│   ├── context.md
-│   ├── architecture.md
-│   ├── tech-stack.md
-│   ├── data-model.md
-│   ├── conventions.md
-│   └── lookup.md
-├── 02-modules/
+│   ├── context.md                        # 项目背景、边界、核心术语
+│   ├── artifact-map.md                   # 业务产物全景图与关系
+│   ├── artifacts/
+│   │   ├── index.md
+│   │   ├── artifact-{artifact}.md        # 业务产物主文档（why/who/what）
+│   │   └── {artifact}/
+│   │       ├── lifecycle.md              # 生命周期阶段 + 数据流
+│   │       └── trace-{area}.md          # 代码执行 trace（调用链/副作用/边界）
+│   └── journeys/
+│       ├── index.md
+│       └── journey-{scenario}.md        # 跨产物端到端流程
+├── 02-indexes/
 │   ├── index.md
-│   └── mod-{module}.md
-└── 02-modules/{module}/
-    ├── topic-{topic}.md
-    └── deep-{topic}.md
+│   ├── keyword-index.md                 # 业务词/产物名/角色 → artifact/journey
+│   ├── symbol-index.md                  # 类/方法/API/表 → artifact/trace
+│   ├── symptom-index.md                 # 故障现象/错误 → artifact/trace
+│   └── stage-index.md                   # 状态/阶段名 → artifact/lifecycle
+└── 03-code/
+    ├── index.md
+    ├── module-{module}.md               # 模块归属哪些 artifacts / traces
+    └── integration-map.md               # 外部系统 / SDK 集成一览
 ```
 
 ## Read Mode
 
-### Scenario A: Auto Context
+### Scenario A: 代码任务（默认）
 
-任何涉及代码的任务触发时：
-
-1. 读 `.agent-memory/00-index.md`
-2. 只在根层做一次选择：
-   - 系统级问题 → `01-system/index.md`
-   - 模块级问题 → `02-modules/index.md`
-3. 如果进入 `01-system/index.md`：
-   - 需要背景/架构/技术栈/模型/约定 → 读对应系统内容页
-   - 需要通过符号、别名、场景词定位模块 → 读 `01-system/lookup.md`
-4. 如果进入 `02-modules/index.md`：
-   - 先定位模块，再读 `02-modules/mod-{module}.md`
-5. 若模块主入口仍不够，再读 `02-modules/{module}/topic-{topic}.md`
-6. 只有当 topic 仍不足以支持写代码、改逻辑、修复杂 bug 时，才读 `02-modules/{module}/deep-{topic}.md`
-7. 如果当前轮已经由父级 index 明确得到了某个子路径，可直接继续该子路径，不必反复回退
-8. 不在未知路径情况下把叶子文档当首跳
-9. 够用就停，不默认全量阅读
-10. 静默使用上下文，除非用户要求，不主动复述全部记忆
+1. 读 `00-index.md` → 决定进 `01-business`、`02-indexes` 还是 `03-code`
+2. 多数编码任务先进 `01-business/artifacts/artifact-{artifact}.md`
+3. 找不到目标 artifact → 先查 `02-indexes/keyword-index.md` 或 `symbol-index.md`
+4. `artifact-{artifact}.md` 满足大多数理解任务，够用就停
+5. 需要生命周期细节 / 数据流 → 续读 `{artifact}/lifecycle.md`
+6. 需要改代码 / 看副作用顺序 → 续读 `{artifact}/trace-{area}.md`
 
 ### Scenario B: Onboarding
 
-用户让你“接手项目/了解项目”时：
+1. `00-index.md` → `01-business/context.md`（项目背景与核心术语）
+2. `01-business/artifact-map.md`（业务产物全景）
+3. `01-business/artifacts/index.md` → 选 2-3 个核心 artifact 主文档
+4. 对关键 artifact 进入 `lifecycle.md`
 
-1. `00-index.md`
-2. `01-system/index.md`
-3. 只按需要读 `context.md`、`architecture.md`、`tech-stack.md`
-4. `02-modules/index.md`
-5. 选相关模块，读 `mod-{module}.md`
-6. 进入核心 `topic-{topic}.md`
-7. 只在需要方法级逻辑时进入 `deep-{topic}.md`
+### Scenario C: 关键词 / 症状检索
+
+1. `00-index.md` → `02-indexes/index.md`
+2. 按问题类型选索引：
+   - 业务词 / 产物名 / 角色 → `keyword-index.md`
+   - 类 / 方法 / 表名 → `symbol-index.md`
+   - 故障现象 / 错误信息 → `symptom-index.md`
+   - 状态 / 阶段名 → `stage-index.md`
+3. 索引落点必须是 `artifact-*.md` 或 `trace-*.md`，不落 `03-code/module`
+
+### Scenario D: 模块 / 代码归属查询
+
+1. `00-index.md` → `03-code/index.md` → `module-{module}.md`
+2. `module-{module}.md` 只回答"归属哪些 artifacts / traces"
+3. 不在 `03-code/` 层理解业务主线
 
 ## Efficiency Rules
 
-1. **新查询**: 默认从 `00-index.md` 开始
-2. **同轮续读**: 如果当前轮已经通过父级目录确认了精确子路径，允许直接续读该子路径
-3. **不猜兄弟节点**: 不并行试读多个模块或多个 topic，除非父级索引明确提示它们都相关
-4. **不为形式回退**: 已经确认 `mod-{module}.md` 或 `topic-{topic}.md` 与当前问题直接相关时，不必为了遵守流程再次回到根目录重读
-5. **默认停在最浅可用层**: 模块文档足够回答时，不进入 topic；topic 足够回答时，不进入 deep
+1. **够用就停**：`artifact-{artifact}.md` 满足时不进 `lifecycle`；`lifecycle` 满足时不进 `trace`
+2. **同轮续读**：父级 index 已确认路径后，可直接续读，不必回退到根
+3. **索引优先于猜测**：找不到 artifact 时先查 `02-indexes/`，不要猜文件名
+4. **不猜兄弟节点**：不并行试读多个 artifact，除非父级索引明确提示
 
 ## Write Mode
 
 ### Verification Baseline
 
-写入前，每条事实都必须完成下列验证：
+每条事实写入前必须验证：
 
-1. **存在性**: 用搜索和阅读确认类名、方法名、路由、表名、Topic 真实存在
-2. **完整性**: 抽查关键实现，确认不是空实现，也不是 `TODO`、`FIXME`、`HACK`
-3. **可用性**: 有实际调用方、入口或配置支撑，不是孤立死代码
-4. **排除项**:
-   - `@Deprecated` / `deprecated`
-   - 测试 mock
-   - 注释掉的代码
-   - 默认关闭的 feature flag
-   - WIP / 实验性 / 临时方案
+| 维度 | 通过条件 |
+|------|----------|
+| 存在性 | 代码 / 配置 / 表中真实存在 |
+| 完整性 | 非空实现，无明显 TODO / 占位 |
+| 可用性 | 有实际调用方或配置生效 |
+| 排除项 | 非废弃、非 mock、非 WIP、非注释代码 |
 
 不确定的不写。
 
-### Scenario C: Initial Setup
+### Scenario E: 初始建立
 
-1. 先创建 `.agent-memory/00-index.md`
-2. 建 `01-system/`，从 `index.md` 开始，再补系统事实内容页和 `lookup.md`
-3. 建 `02-modules/`，先写 `index.md`，再按业务领域创建 `mod-{module}.md`
-4. 对每个核心模块，必须创建 `1-3` 个真正能帮助编码的 `topic-{topic}.md`
-5. 只有当 topic 无法承载方法级核心逻辑时，才创建 `deep-{topic}.md`
-6. 每次新增模块、topic 或 deep 文档时，同步更新：
-   - `00-index.md`
-   - `01-system/index.md`
-   - `01-system/lookup.md`
-   - `02-modules/index.md`
-   - 对应 `mod-{module}.md`
+1. 创建 `00-index.md`
+2. 创建 `01-business/context.md`（项目背景）
+3. 创建 `01-business/artifact-map.md`（业务产物全景，先列名和关系）
+4. 逐个建 `artifact-{artifact}.md`，**核心产物必须同时建 `lifecycle.md`**
+5. 建 `journeys/` 中跨产物流程文档（至少 1 个端到端主流程）
+6. 建 `02-indexes/` 四个倒排索引文件
+7. 建 `03-code/module-{module}.md` 代码归属视图
+8. 每新增 artifact / journey / trace，必须同步更新受影响的 `index.md` 和 `02-indexes/`
 
-### Scenario D: Post-change Update
+### Scenario F: 变更后更新
 
 1. 先验证变更已真实落代码
-2. 按影响面更新对应层级：
-   - 系统定位、技术栈、约定变化 → `01-system/`
-   - 模块边界、能力、入口变化 → `02-modules/mod-{module}.md`
-   - 某主题的流程、边界、异常现象变化 → `02-modules/{module}/topic-{topic}.md`
-   - 方法级核心逻辑、关键判断树、状态变更细节变化 → `02-modules/{module}/deep-{topic}.md`
-3. 任何新增或失效的类名、方法名、路由、别名、场景词，都要同步更新 `01-system/lookup.md`
-4. 若某个核心模块仍没有可用于编码的 topic，优先补 topic，而不是继续堆模块介绍
+2. 按影响面更新：
+   - 产物边界 / 目标 / 主流程变化 → `artifact-{artifact}.md`
+   - 阶段 / 数据流 / 消费者变化 → `{artifact}/lifecycle.md`
+   - 调用链 / 副作用 / 边界变化 → `{artifact}/trace-{area}.md`
+   - 跨产物流程变化 → `journey-{scenario}.md`
+   - 模块代码归属变化 → `03-code/module-{module}.md`
+3. 新增 / 失效的关键词 / 症状 / 符号同步更新对应索引
 
 ## Layer Rules
 
-| 层级 | 目录 | 回答的问题 | 必须避免 |
-|------|------|------------|----------|
-| 根目录块 | `00-index.md` | 下一步进 system 还是 modules？ | 系统细节、模块细节 |
-| 系统目录块 | `01-system/index.md` | 系统文档有哪些，lookup 在哪？ | 具体模块主题 |
-| 模块目录块 | `02-modules/index.md` | 有哪些模块，先看哪个模块？ | 主题细节 |
-| 模块主入口 | `02-modules/mod-{module}.md` | 这个模块负责什么，有哪些主题？ | 全量系统说明 |
-| 主题叶子 | `02-modules/{module}/topic-{topic}.md` | 这个主题主线怎么走、关键决策和边界摘要是什么？ | 退化成纯目录说明 |
-| deep 子层 | `02-modules/{module}/deep-{topic}.md` | 方法级核心逻辑、关键判断、状态变化、副作用是什么？ | 成为默认首跳或泛滥创建 |
+| 层级 | 路径 | 必须回答 | 必须避免 |
+|------|------|----------|----------|
+| 根索引 | `00-index.md` | 进 business / indexes / code？ | 任何业务细节 |
+| 业务索引 | `01-business/index.md` | 有哪些 artifacts / journeys？ | 展开 artifact 内容 |
+| 上下文 | `01-business/context.md` | 项目背景、边界、核心术语 | 流程执行细节 |
+| 产物图谱 | `01-business/artifact-map.md` | 所有业务产物与关系 | 单产物深度内容 |
+| **产物主文档** | `artifacts/artifact-{artifact}.md` | why_exists、业务目标、主生命周期摘要、输入/输出、关联产物 | 代码执行细节 |
+| **生命周期** | `{artifact}/lifecycle.md` | 阶段表（8 列）、数据流表（6 列）、消费者、失败降级规则 | 代码方法级细节 |
+| **代码 Trace** | `{artifact}/trace-{area}.md` | 调用链、事务/异步边界、副作用顺序、危险改动点 | 重复业务目的说明 |
+| 流程文档 | `journeys/journey-{scenario}.md` | 跨产物端到端流程、移交点、失败传播 | 单产物内部逻辑 |
+| 索引总入口 | `02-indexes/index.md` | 有哪几个索引 + 各自找什么 | 索引内容 |
+| 关键词索引 | `02-indexes/keyword-index.md` | 业务词 / 产物名 → artifact/journey | 超出映射的解释 |
+| 符号索引 | `02-indexes/symbol-index.md` | 类 / 方法 / API / 表 → artifact/trace | — |
+| 症状索引 | `02-indexes/symptom-index.md` | 故障现象 → artifact/trace | — |
+| 阶段索引 | `02-indexes/stage-index.md` | 状态 / 阶段名 → artifact/lifecycle | — |
+| 代码归属 | `03-code/module-{module}.md` | 模块归属哪些 artifacts / traces | 业务主叙事 |
 
 ## Mandatory Writing Standards
 
 1. 每篇文档都必须带 machine-readable frontmatter
-2. `lookup.md`、`mod-{module}.md`、`topic-{topic}.md` 都必须有 `aliases` 和 `symbols`
-3. 每篇文档都必须有 `coverage`、`last_verified`、`confidence`
-4. 每篇文档都必须有可检索关键词和导航链接
-5. 同一事实只放在最合适的一层，避免跨层重复
-6. 模块按业务领域划分，不按技术目录划分
-7. 目录块只做导航，不承担大段解释
-8. 每个核心模块初始化时必须产出 topic，而不是只产出模块页
-9. topic 先承担主题主线与决策摘要，deep 只在必要时补方法级逻辑
-10. lookup 有明确 topic 时必须尽量落到 topic，不能只停在模块页
+2. `artifact-{artifact}.md` 必须包含：`why_exists`、`consumers`、`failure_impact`、`data_in`、`data_out`
+3. `lifecycle.md` 必须包含：阶段表（8 列）+ 数据流表（6 列）
+4. `trace-{area}.md` 必须标注：事务边界、异步边界、副作用执行顺序、危险改动点
+5. 倒排索引必须落到 `artifact` 或 `trace`，禁止只落到 `03-code/module`
+6. 关键词索引必须覆盖：业务能力词、产物名、阶段名、角色名、数据对象名、症状词
+7. 不允许只有流程步骤，没有输入 / 输出 / 消费者
+8. 不允许只列方法名，不解释业务目的
+9. 不允许漏掉"失败时影响什么、不影响什么"
+10. 同一事实只放在最合适的层，避免跨层重复
 
-详细格式、frontmatter、lookup 规则、增长约束、拆分触发和模板映射见 [reference.md](reference.md)。
+详细 frontmatter schema、模板映射、好 / 坏示例见 [reference.md](reference.md)。
