@@ -11,6 +11,7 @@
 | `creekmoon-code-style` | 代码风格：方法设计、入参、流程组织、命名 |
 | `creekmoon-project-memory` | 项目记忆：`.agent-memory/` 渐进式知识库，方便 AI 快速接手项目 |
 | `creekmoon-weekly-report` | 项目周报：从 Git 提交记录提取开发活动，生成结构化《项目周报-开发维度》 |
+| `creekmoon-apidoc-spec` | 接口文档规范：标准化 API 文档格式（概述、版本历史、环境配置、请求/响应参数、示例） |
 
 ## 使用方式
 
