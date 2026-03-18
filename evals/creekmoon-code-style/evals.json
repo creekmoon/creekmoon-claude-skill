@@ -1,0 +1,23 @@
+{
+  "skill_name": "creekmoon-code-style",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "请按 creekmoon-code-style 检查并调整一个认证方法 `issueAccessToken()` 的代码风格。当前方法新增了一个内部固定测试凭证到用户 ID 的映射，但我怀疑代码把测试旁路写成了主线。你需要判断谁是主流程、谁是特例分支，并说明应该如何组织代码。",
+      "expected_output": "明确识别正式凭证鉴权为主流程，内部固定测试凭证为测试旁路；指出不能把正式流程包在 `if (未命中特例)` 的负条件分支里，并给出主流程平铺、特例前置分流或早返回的调整建议。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "有个导出接口 `exportOrderList()`，正式业务是按筛选条件导出订单列表。现在为了方便测试，新增了一个 `if (currentUserIsTester)` 分支，测试账号会直接导出固定样例数据，原本正式导出逻辑被放进了 `if (!currentUserIsTester)` 里。请按 creekmoon-code-style 判断这段代码的问题，并给出更合理的主次流程组织方式。",
+      "expected_output": "识别正式导出为主流程、测试账号样例导出为特例；指出 `if (!currentUserIsTester)` 包裹主流程属于主次颠倒，建议将测试账号逻辑收束为前置特例分流或早返回。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "某个下单方法 `createShipment()` 原本主流程是走新版本请求参数。后来为了兼容旧客户端，新增了 legacy 字段兼容分支。现在代码先按 legacy 字段尝试组装请求，只有 legacy 为空时才走新版字段。请按 creekmoon-code-style 评估这段实现是否存在主次流程错位，并说明判断依据。",
+      "expected_output": "识别新版本请求参数路径是否才是当前默认合同；如果 legacy 只是兼容旧客户端，应指出不能把新版主流程写成 `if (legacy 为空)` 的补洞逻辑，并说明主流程与兼容分支的正确摆放原则。",
+      "files": []
+    }
+  ]
+}
