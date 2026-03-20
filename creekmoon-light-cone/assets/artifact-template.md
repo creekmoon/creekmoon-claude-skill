@@ -113,7 +113,9 @@ stateDiagram-v2
 
 | Location | Current Logic | Risk If Changed | Validation Rule |
 |----------|---------------|-----------------|-----------------|
-| `{file}:{line}` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
+| `{ClassName}#{method}({ParamType})` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
+
+> **格式说明**：使用 `ClassName#method(ParamType)` 签名格式，不记录行号。行号在代码 Insert/Delete 后会漂移且无法自动检测。Agent 可用 Grep 工具一步定位方法。
 
 ## Failure & Degradation
 
@@ -133,7 +135,9 @@ stateDiagram-v2
 - `{table}`: `{ddl-file}.sql`
 
 ### Key Methods
-- `{method}()`: `{ClassName}.java:{line}`
+- `{ClassName}#{method}({ParamType})` — {核心逻辑描述}
+
+> **格式说明**：使用方法签名 + 语义描述，不记录行号。示例：`OrderService#cancel(Long)` — 先退款再改状态，需保证事务内完成
 
 ## Related
 

@@ -19,7 +19,9 @@ confidence: low
 
 | Symbol | Artifact | Location | Purpose |
 |--------|----------|----------|---------|
-| `{ClassName}.{method}()` | [{artifact}](business/artifacts/{artifact}.md) | `{file}:{line}` | {用途} |
+| `{ClassName}#{method}({ParamType})` | [{artifact}](business/artifacts/{artifact}.md) | `{ClassName}#{method}({ParamType})` | {用途} |
+
+> **Location 列说明**：使用方法签名 `ClassName#method(ParamType)` 格式，不记录行号。行号会漂移，方法签名更稳定。
 
 ## Tables
 

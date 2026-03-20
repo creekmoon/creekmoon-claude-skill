@@ -188,7 +188,7 @@ Entry: Controller.method()
 ### Dangerous Change Points（危险改动点）
 | Location | Risk | Rule |
 |----------|------|------|
-| `{method}() L{line}` | 改动导致事务边界变化 | 必须与 {其他方法} 保持一致 |
+| `{ClassName}#{method}({ParamTypes})` | 改动导致事务边界变化 | 必须与 {其他方法} 保持一致 |
 | `{field}` 赋值位置 | 状态机漏状态 | 新增状态必须同步修改 {校验方法} |
 
 ## Failure & Degradation（失败与降级）
@@ -198,7 +198,10 @@ Entry: Controller.method()
 | {失败场景} | {系统如何反应} | {业务损失} | {如何恢复} |
 
 ## Evidence Anchors（证据锚点）
+> **不记录行号**。用 `ClassName#method(ParamType)` 标准签名格式，Agent 可用 Grep 工具一步定位。行号在任何 Insert/Delete 后失效且无法自动检测，是「自信但错误」的锚点。
+
 - 核心类：`{ClassName}` @ `{file}`
+- 关键方法：`{ClassName}#{method}({ParamTypes})` — {一句话描述核心逻辑/副作用}
 - 状态枚举：`{EnumName}` @ `{file}`
 - 数据库表：`{table_name}`
 ```
@@ -266,6 +269,12 @@ confidence: high | medium | low
 1. **代码变更后**：验证变更已落代码，同步更新对应产物/流程文档
 2. **发现隐式依赖**：任何新发现的跨模块耦合必须立即记录
 3. **故障复盘后**：将根因和症状写入 `atlas/symptom.md` 和对应产物文档
+
+### 行号禁用规则（重要）
+
+- **禁止**在任何文档中写 `{file}:{line}` 或 `L{数字}` 格式
+- 代码定位统一使用 `ClassName#method(ParamType)` 签名格式
+- 若需指出「某段逻辑」，用关键字描述（如「`OrderService#deductOrder` 内 UNPAID 过滤循环」）而非行号
 
 ---
 

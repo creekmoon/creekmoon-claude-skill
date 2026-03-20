@@ -235,7 +235,7 @@ stateDiagram-v2
 
 | Location | Current Logic | Risk If Changed | Validation Rule |
 |----------|---------------|-----------------|-----------------|
-| `{file}:{line}` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
+| `{ClassName}#{method}({ParamType})` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
 
 ## Failure & Degradation
 
@@ -255,7 +255,7 @@ stateDiagram-v2
 - `{table}`: `{ddl-file}.sql`
 
 ### Key Methods
-- `{method}()`: `{ClassName}.java:{line}`
+- `{ClassName}#{method}({ParamType})` — {核心逻辑描述}
 
 ## Related
 
@@ -433,7 +433,7 @@ confidence: high
 
 | Symbol | Artifact | Location | Purpose |
 |--------|----------|----------|---------|
-| `{ClassName}.{method}()` | [{artifact}](business/artifacts/{artifact}.md) | `{file}:{line}` | {用途} |
+| `{ClassName}#{method}({ParamType})` | [{artifact}](business/artifacts/{artifact}.md) | `{ClassName}#{method}({ParamType})` | {用途} |
 
 ## Tables
 
@@ -640,8 +640,8 @@ OrderController.create()
 
 | Location | Current Logic | Risk If Changed | Validation |
 |----------|---------------|-----------------|------------|
-| `OrderService.java:156` | `cancel()` 检查 `status ∈ [CREATED, PAID]` | 若允许取消 SHIPPED，承运商成本无人承担 | 必须保持状态检查 |
-| `OrderMapper.xml:89` | `updateStatus` 使用乐观锁 | 若改为直接更新，并发状态覆盖 | 必须保持 version 字段 |
+| `OrderService#cancel(Long)` | 检查 `status ∈ [CREATED, PAID]` | 若允许取消 SHIPPED，承运商成本无人承担 | 必须保持状态检查 |
+| `OrderMapper#updateStatus` | 使用乐观锁 | 若改为直接更新，并发状态覆盖 | 必须保持 version 字段 |
 
 ## Failure & Degradation
 
@@ -657,7 +657,7 @@ OrderController.create()
 - **OrderService**: `com.efficross.web.service.order.OrderService`
 - **OrderStatus Enum**: `com.efficross.web.model.enums.OrderStatus`
 - **DB Table**: `t_order` (DDL: `.cursor/mysql-ddl/order.sql`)
-- **状态机校验**: `OrderService.java:234` `validateStatusTransition()`
+- **状态机校验**: `OrderService#validateStatusTransition(Long, OrderStatus)` — 校验状态转换合法性，违反时抛 BizException
 ```
 
 ---
@@ -679,7 +679,7 @@ OrderController.create()
 - [ ] 至少识别 1 个隐式依赖
 - [ ] 至少列出 2 个业务不变量
 - [ ] 至少列出 2 条时序规则
-- [ ] 所有规则都关联到具体代码位置
+- [ ] 所有规则都关联到具体代码位置（使用方法签名 `ClassName#method(ParamType)` 而非行号）
 
 ### 信息密度
 - [ ] 没有纯方法名列举而无业务说明
