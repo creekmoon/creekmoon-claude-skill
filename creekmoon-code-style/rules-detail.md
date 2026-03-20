@@ -171,6 +171,79 @@ public void bindTrackingNo(Long orderId, String trackingNo) {
 
 每个方法应将业务主要预期（主流程）作为主线逻辑。if 分支仅用于额外校验或设置默认值，严禁将主流程逻辑写在分支内部。
 
+### 先判断谁才是主流程
+
+先判断"调用方默认预期会走哪条路径"，而不是先看"哪段代码是新加的"。
+
+- **主流程**：方法的默认合同、最常规路径、大多数调用方正常情况下会走到的路径
+- **次流程**：测试捷径、兼容旧逻辑、灰度开关、降级兜底、临时旁路、特殊账号白名单等
+
+判断顺序：
+
+1. 先看业务合同，不看实现先后
+2. 先看常规调用，不看新增逻辑
+3. 先看调用方心智模型，不看哪段代码更短或更好改
+
+写法要求：
+
+- 主流程必须平铺为主线
+- 次流程只能做前置分流、早返回、局部兜底
+- 禁止把主流程写成 `if (未命中特例)`、`if (!isGray)`、`if (不是测试 token)` 这类负条件分支里的"补洞逻辑"
+
+### 常见误判：把新增特例写成视觉主线
+
+新增的测试 token、兼容参数、灰度白名单，往往只是为少量场景开的口子。它们可以存在，但不能在代码结构上压过正式业务路径。
+
+反面示例（把内部测试凭证写成主线，正式鉴权反而成了回退逻辑）：
+
+```java
+String credential = request.getCredential();
+Long userId = INTERNAL_TEST_CREDENTIAL_USER_MAP.get(credential);
+
+if (userId == null) {
+    CredentialRecord credentialRecord = credentialRepository.findByCredential(credential);
+    if (credentialRecord == null) {
+        throw new BizException("凭证不存在或已失效");
+    }
+    if (!credentialRecord.isEnabled()) {
+        throw new BizException("凭证已停用");
+    }
+    userId = credentialRecord.getUserId();
+}
+
+authSessionService.login(userId);
+```
+
+问题不在于"能不能工作"，而在于代码向读者表达成了：
+- 先走内部测试凭证
+- 没命中才回退到正式鉴权
+
+这会把测试旁路抬成视觉主线，违背"主流程优先"。
+
+正面示例（把特例明确收束为前置分流，正式鉴权流程保持主线表达）：
+
+```java
+String credential = request.getCredential();
+Long internalUserId = INTERNAL_TEST_CREDENTIAL_USER_MAP.get(credential);
+if (internalUserId != null) {
+    authSessionService.login(internalUserId);
+    return buildAccessTokenVO();
+}
+
+CredentialRecord credentialRecord = credentialRepository.findByCredential(credential);
+if (credentialRecord == null) {
+    throw new BizException("凭证不存在或已失效");
+}
+if (!credentialRecord.isEnabled()) {
+    throw new BizException("凭证已停用");
+}
+
+authSessionService.login(credentialRecord.getUserId());
+return buildAccessTokenVO();
+```
+
+这里内部测试凭证仍然可用，但它被表达成一个"明确的特殊分流"；正式鉴权流程保持平铺，读者一眼就能知道哪条才是默认业务路径。
+
 ### 代码示例
 
 正面示例（先处理异常/空值，再执行主逻辑）：
