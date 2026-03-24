@@ -82,17 +82,21 @@ for /l %%i in (1,1,7) do (
 )
 
 echo.
-echo  #    Skill Name                         Remote      Installed   Status
-echo  ---- ---------------------------------- ----------- ----------- --------
+echo  #    Skill Name                               Remote       Installed    Status
+echo  ---- ---------------------------------------- ------------ ------------ --------
 for /l %%i in (1,1,7) do (
-    set "ST=new    "
-    if "!LV%%i!"=="!RV%%i!"  set "ST=ok     "
+    set "ST=[new   ]"
+    if "!LV%%i!"=="!RV%%i!"  set "ST=[ok    ]"
     if not "!LV%%i!"=="---" (
-        if not "!LV%%i!"=="!RV%%i!"  set "ST=update "
+        if not "!LV%%i!"=="!RV%%i!"  set "ST=[update]"
     )
-    echo  [%%i]  !SK%%i!
-    echo        remote:!RV%%i!    installed:!LV%%i!    [!ST!]
-    echo.
+    set "_N=!SK%%i!                                        "
+    set "_N=!_N:~0,40!"
+    set "_R=!RV%%i!            "
+    set "_R=!_R:~0,12!"
+    set "_L=!LV%%i!            "
+    set "_L=!_L:~0,12!"
+    echo  [%%i]  !_N! !_R! !_L! !ST!
 )
 
 echo.
