@@ -1,5 +1,6 @@
 ---
 name: creekmoon-prd-spec
+version: 1.0.0
 description: PRD写作规范 - 精简、大白话、图表优先
 ---
 

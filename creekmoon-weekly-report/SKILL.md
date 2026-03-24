@@ -1,5 +1,6 @@
 ---
 name: project-weekly-report
+version: 1.0.0
 description: Extracts development activity from code repositories, filters noise, clusters by business module, and generates structured project weekly reports (项目周报-开发维度). Use when user asks for project weekly report, development activity analysis, code repo analysis, or mentions "周报", "开发活动", "最近X天/本周/提交记录".
 ---
 

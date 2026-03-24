@@ -21,9 +21,25 @@
 | `creekmoon-prd-spec` | PRD 写作规范，强调大白话、图表优先、面向业务沟通 | 写需求文档、方案说明、业务评审材料 |
 | `creekmoon-trd-spec` | TRD 写作规范，聚焦架构、模块、接口契约，不展开代码细节 | 写技术方案、接口边界、模块设计 |
 | `creekmoon-code-style` | 代码风格规范，统一方法设计、入参组织、命名和流程表达 | 写代码、重构、补实现 |
-| `creekmoon-light-cone` | 项目记忆系统，用高信息密度文档沉淀业务图谱和关键代码上下文 | 接手项目、分析项目、建立长期记忆 |
+| `creekmoon-lightcone-memory` | 项目记忆系统，用高信息密度文档沉淀业务图谱和关键代码上下文 | 接手项目、分析项目、建立长期记忆 |
 | `creekmoon-weekly-report` | 从 Git 提交中提炼开发活动，生成结构化《项目周报-开发维度》 | 周报、阶段汇报、研发活动归纳 |
 | `creekmoon-apidoc-spec` | 标准化接口文档规范，统一概述、版本、环境、请求/响应、示例结构 | 对外接口文档、开放平台文档、资源接口说明 |
+
+## 快速安装（Windows）
+
+在命令行中运行以下命令，会启动交互式安装程序，引导你选择安装位置和要安装的 skill：
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/creekmoon/creekmoon-claude-skill/master/autoUpdateSkill.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
+国内网络（Gitee）：
+
+```cmd
+curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpdateSkill.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
+> 需要系统已安装 `curl`（Windows 10 1803+ 内置）。安装程序会自动检测 GitHub / Gitee 连通性，选延迟更低的源下载。
 
 ## 使用方式
 
@@ -31,18 +47,18 @@
 2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档。
 3. 如果是代码相关任务，通常建议组合使用：
 
-- 先用 `creekmoon-light-cone` 建立项目上下文
+- 先用 `creekmoon-lightcone-memory` 建立项目上下文
 - 再用 `creekmoon-code-style` 约束具体实现风格
 
 ## 目录变化说明
 
-项目记忆能力已从旧版 `creekmoon-project-memory` 升级为 `creekmoon-light-cone`。
+项目记忆能力已从旧版 `creekmoon-project-memory` 升级为 `creekmoon-lightcone-memory`。
 
 - 旧版强调分层索引和渐进式沉淀
 - 新版强调高信息密度文档、业务图谱、跨模块约束和隐式依赖
 - 新版默认使用 `.light-cone/` 作为项目记忆目录
 
-如果你之前已经基于旧目录结构使用过项目记忆能力，建议逐步迁移到 `creekmoon-light-cone`。
+如果你之前已经基于旧目录结构使用过项目记忆能力，建议逐步迁移到 `creekmoon-lightcone-memory`。
 
 ## 适合谁用
 

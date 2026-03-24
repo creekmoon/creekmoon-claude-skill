@@ -1,5 +1,6 @@
 ---
 name: creekmoon-trd-spec
+version: 1.0.0
 description: 技术实现文档（TRD）写作规范（架构/模块/接口契约层面，不讨论代码细节）
 ---
 

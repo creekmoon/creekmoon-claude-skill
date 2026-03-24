@@ -1,5 +1,6 @@
 ---
 name: creekmoon-cerydra-codify
+version: 1.0.0
 description: |
   **分析代码库中的写作范式并生成可迁移的开发规范**。当用户需要：
   1. "分析XX模块的代码组织方式，提炼规范"
