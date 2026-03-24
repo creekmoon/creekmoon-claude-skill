@@ -586,10 +586,12 @@ erDiagram
 type: schema-table
 name: {table-name}
 title: {表中文名}
+table_type: {config|transaction|snapshot|aggregate|relational|core}
 coverage: stub
 last_verified: YYYY-MM-DD
 confidence: low
 primary_artifact: {artifact-name}
+logical_entity: {entity-name}
 ---
 
 # {表名} ({表中文名})
@@ -599,10 +601,23 @@ primary_artifact: {artifact-name}
 | 属性 | 值 |
 |------|-----|
 | 表名 | `{table_name}` |
+| 表类型 | {config/transaction/snapshot/aggregate/relational/core} — {类型说明} |
 | 引擎 | {InnoDB/MyISAM/etc} |
 | 字符集 | {utf8mb4/etc} |
 | 主要业务产物 | [{artifact}](business/artifacts/{artifact}.md) |
+| 逻辑实体 | [{entity}](../atlas/entities.md#{entity}) |
 | 数据规模 | {预估行数/增长趋势} |
+
+### 表类型说明
+
+| 类型 | 特征 | 典型命名 | 使用场景 |
+|------|------|----------|----------|
+| **config** | 配置表 | `_config`, `_dict`, `_dim` | 业务配置、字典数据，通常<1000行 |
+| **transaction** | 流水表 | `_log`, `_event`, `_detail` | 不可更新的历史记录，量大 |
+| **snapshot** | 快照表 | `_snapshot`, `_status` | 含日期分区，全量或增量快照 |
+| **aggregate** | 汇总表 | `_agg`, `_stat`, `_sum` | 预计算结果，可能丢失原子粒度 |
+| **relational** | 关系表 | `_rel`, `_map`, `_link` | 多对多映射，无业务含义主键 |
+| **core** | 核心表 | 核心业务名词 | 业务核心实体主表 |
 
 ## DDL / ORM 定义
 
@@ -685,6 +700,124 @@ JOIN {table_b} b ON a.{fk_col} = b.id
 WHERE a.status = ?
 ```
 
+## 逻辑实体归属
+
+> 说明：本表在业务实体模型中的位置和作用
+
+### 所属实体
+
+| 逻辑实体 | 实体作用 | 相关表 | 本表角色 |
+|----------|----------|--------|----------|
+| [{entity}](../atlas/entities.md#{entity}) | {实体定义} | {table_a}, {table_b}, {table_c} | {主表/扩展表/关系表} |
+
+### 实体在物理表中的分布
+
+```
+实体: {entity}
+├── 主表: [{main_table}]({main_table}.md) — 存储{核心字段}
+├── 扩展表: [{ext_table}]({ext_table}.md) — 存储{扩展字段}
+└── 关系表: [{rel_table}]({rel_table}.md) — 关联{other_entity}
+```
+
+## 字段血缘
+
+> 字段来源分析：原生字段 vs 计算字段 vs 冗余字段
+
+### 字段来源矩阵
+
+| 字段名 | 来源类型 | 来源说明 | 计算公式/推导规则 | 证据位置 |
+|--------|----------|----------|-------------------|----------|
+| `{native_field}` | 原生 | 直接存储 | - | 用户输入/外部系统 |
+| `{calculated_field}` | 计算 | 代码生成 | `{formula}` | `{Class}#{method}()` |
+| `{derived_field}` | 冗余 | 可从其他字段推导 | 由`{source_field}`{推导规则} | `{Class}#{method}()` |
+
+### 计算字段详情
+
+| 字段 | 计算公式 | 计算时机 | 业务含义 |
+|------|----------|----------|----------|
+| `{field_a}` | `{field_b} + {field_c}` | 写入时计算 | {说明} |
+| `{field_d}` | `CASE WHEN {condition} THEN {value1} ELSE {value2} END` | 查询时计算 | {说明} |
+
+### 冗余字段一致性
+
+| 冗余字段 | 源字段 | 推导规则 | 一致性检查 |
+|----------|--------|----------|------------|
+| `{redundant_field}` | `{source_field}` | {规则} | `{Checker}#checkConsistency()` |
+
+## 数据质量验证
+
+> 用于验证文档准确性和数据一致性的检查清单
+
+### 主键与唯一性
+
+```sql
+-- 主键唯一性检查
+SELECT `{pk_field}`, COUNT(*) as cnt
+FROM `{table_name}`
+GROUP BY `{pk_field}`
+HAVING cnt > 1;
+
+-- 业务唯一键检查
+SELECT `{uk_field}`, COUNT(*) as cnt
+FROM `{table_name}`
+WHERE `del_flag` = 0
+GROUP BY `{uk_field}`
+HAVING cnt > 1;
+```
+
+### 空值率检查
+
+```sql
+-- 关键字段空值率
+SELECT
+    COUNT(*) as total_rows,
+    COUNT(`{field_a}`) as non_null_a,
+    COUNT(`{field_b}`) as non_null_b,
+    (COUNT(*) - COUNT(`{field_a}`)) / COUNT(*) * 100 as null_rate_a
+FROM `{table_name}`;
+```
+
+### 外键一致性
+
+```sql
+-- 孤儿记录检查（本表外键在关联表中是否存在）
+SELECT a.*
+FROM `{table_name}` a
+LEFT JOIN `{ref_table}` b ON a.`{fk_field}` = b.`{pk_field}`
+WHERE a.`{fk_field}` IS NOT NULL
+  AND b.`{pk_field}` IS NULL;
+```
+
+### 时间连续性
+
+```sql
+-- 时间字段范围检查
+SELECT
+    MIN(`{time_field}`) as earliest,
+    MAX(`{time_field}`) as latest,
+    COUNT(DISTINCT DATE(`{time_field}`)) as distinct_days
+FROM `{table_name}`;
+```
+
+### 状态值有效性
+
+```sql
+-- 状态值分布（检查是否有未定义的状态）
+SELECT `{status_field}`, COUNT(*) as cnt
+FROM `{table_name}`
+GROUP BY `{status_field}`
+ORDER BY cnt DESC;
+```
+
+### 数据质量报告
+
+| 检查项 | 期望结果 | 实际结果 | 状态 | 备注 |
+|--------|----------|----------|------|------|
+| 主键唯一性 | 无重复 | {结果} | {✅/❌} | {备注} |
+| {field_a}空值率 | <5% | {结果} | {✅/❌} | {备注} |
+| 外键一致性 | 无孤儿记录 | {结果} | {✅/❌} | {备注} |
+| 时间连续性 | 无断档 | {结果} | {✅/❌} | {备注} |
+
 ## 业务规则推断
 
 ### 从表结构推断的约束
@@ -708,6 +841,8 @@ WHERE a.status = ?
 - **Mapper 接口**: `{package/MapperClass.java}`
 - **核心业务查询**: `{ServiceClass}#{queryMethod}({ParamType})` — {用途}
 - **关联业务产物**: [business/artifacts/{artifact}.md](business/artifacts/{artifact}.md)
+- **逻辑实体**: [atlas/entities.md#{entity}](../atlas/entities.md#{entity})
+- **业务术语**: [atlas/glossary.md](../atlas/glossary.md)
 ```
 
 ### 2.11 schema/relations.md 模板
@@ -829,6 +964,272 @@ graph TD
 | 日期 | 变更 | 涉及表 | 原因 |
 |------|------|--------|------|
 | YYYY-MM-DD | 新增外键 | `{table_a}` → `{table_b}` | {原因} |
+```
+
+### 2.12 atlas/entities.md 模板
+
+```markdown
+---
+type: entities
+name: {project-name}-entities
+title: 业务实体映射表
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
+entity_count: 0
+table_count: 0
+---
+
+# 业务实体映射表
+
+> 本文档建立**技术元数据 → 业务语义**的桥梁，记录从物理表结构逆向分析得到的业务实体概念。
+> 物理表详情见 [schema/tables/](../schema/tables/) 目录。
+
+## 实体总览
+
+| 统计项 | 数量 |
+|--------|------|
+| 业务实体数 | {N} |
+| 物理表数 | {M} |
+| 一对多映射（1实体→N表） | {K} |
+| ID体系数 | {L} |
+
+## 业务实体清单
+
+### {entity-name}
+
+**一句话定义**: {业务实体的核心定义}
+
+**物理分布**: 该实体的数据分散在以下物理表
+
+| 物理表 | 作用 | 关键字段 | 数据规模 |
+|--------|------|----------|----------|
+| [{table_1}](../schema/tables/{table_1}.md) | {主表/扩展表/关系表} | {primary_key}, {field1}, {field2} | {规模} |
+| [{table_2}](../schema/tables/{table_2}.md) | {作用} | {foreign_key}, {field3} | {规模} |
+
+**ID体系映射**:
+
+| ID类型 | 字段名 | 所在表 | 说明 | 使用场景 |
+|--------|--------|--------|------|----------|
+| 主键 | `id` | {table_1} | 技术自增ID | 内部关联 |
+| 业务ID | `{biz_id}` | {table_1} | 业务唯一标识 | 对外暴露 |
+| 外部ID | `{external_id}` | {table_2} | 第三方系统ID | 外部集成 |
+
+**关联实体**:
+- 一对一: [{entity_a}](#entity-a) — {关系说明}
+- 一对多: [{entity_b}](#entity-b) — {关系说明}
+- 多对多: [{entity_c}](#entity-c) — 通过 `{link_table}` 关联
+
+---
+
+## 实体关系图
+
+```mermaid
+erDiagram
+    ENTITY_A ||--o{ ENTITY_B : "1:N关系"
+    ENTITY_A ||--|| ENTITY_C : "1:1关系"
+    ENTITY_B }o--o{ ENTITY_C : "N:M通过LINK表"
+
+    ENTITY_A {
+        bigint id PK
+        varchar biz_code "业务编码"
+        varchar name "名称"
+    }
+    ENTITY_B {
+        bigint id PK
+        bigint entity_a_id FK
+        varchar status "状态"
+    }
+    ENTITY_C {
+        bigint id PK
+        bigint entity_a_id FK
+        json config "配置"
+    }
+```
+
+## 主键识别矩阵
+
+| 实体 | 技术主键 | 业务主键 | 备用键 | 说明 |
+|------|----------|----------|--------|------|
+| {entity_a} | `id` | `code` | `name` | 业务主键唯一但可修改 |
+| {entity_b} | `id` | `order_no` | - | 业务主键不可修改 |
+
+## 常见问题与陷阱
+
+### ID混淆
+
+| 问题 | 示例 | 影响 | 解决 |
+|------|------|------|------|
+| 技术ID与业务ID混用 | 用`id`而非`order_no`对外暴露 | 外部系统无法识别 | 始终使用业务ID对外 |
+| 多系统ID映射错误 | 将`customer_no`当`user_id`用 | 关联错误用户 | 建立ID映射表 |
+
+### 实体边界模糊
+
+| 场景 | 说明 | 处理建议 |
+|------|------|----------|
+| {entity_a}与{entity_b}界限不清 | {说明} | {建议} |
+
+## Evidence Anchors
+
+- 实体识别来源: `{ClassName}#{method}()` 中的关联查询
+- ID生成逻辑: `{IdGenerator}#generate()`
+- 实体校验规则: `{Validator}#validate{Entity}()`
+```
+
+### 2.13 atlas/glossary.md 模板
+
+```markdown
+---
+type: glossary
+name: {project-name}-glossary
+title: 业务术语表
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
+term_count: 0
+---
+
+# 业务术语表
+
+> 本文档建立**业务语言 → 技术实现**的映射，统一团队术语，消除歧义。
+> 术语与业务产物的关联见 [business/artifacts/](../business/artifacts/) 目录。
+
+## 术语总览
+
+| 统计项 | 数量 |
+|--------|------|
+| 业务术语 | {N} |
+| 涉及表数 | {M} |
+| 同义词组 | {K} |
+
+---
+
+## 按业务域分类
+
+### {domain-name}（如：订单域）
+
+#### {term-name}
+
+| 属性 | 内容 |
+|------|------|
+| **业务定义** | {该术语的业务含义} |
+| **物理字段** | `{table}.{field}` |
+| **数据类型** | {type} |
+| **计算逻辑** | `{formula}` 或 "直接存储" |
+| **所属产物** | [{artifact}](../business/artifacts/{artifact}.md) |
+
+**同义词/易混淆词**:
+- ❌ 勿与 `{similar_term}` 混淆：{区别说明}
+- ⚠️ 注意 `{another_term}` 在不同上下文的含义差异
+
+**使用示例**:
+```sql
+-- 计算 {term-name}
+SELECT {field}, {related_field}
+FROM {table}
+WHERE {condition}
+```
+
+---
+
+## 完整术语矩阵
+
+| 业务术语 | 物理字段 | 所属表 | 业务定义 | 计算逻辑 | 同义词陷阱 |
+|----------|----------|--------|----------|----------|------------|
+| {term_a} | `{field_a}` | [{table_a}](../schema/tables/{table_a}.md) | {定义} | {formula} | 勿与{term_b}混淆 |
+| {term_b} | `{field_b}` | [{table_b}](../schema/tables/{table_b}.md) | {定义} | "原生存储" | {term_a}的旧称 |
+
+---
+
+## 术语歧义对照表
+
+### "{ambiguous_term}" 的多重含义
+
+| 上下文 | 含义 | 对应字段 | 使用场景 |
+|--------|------|----------|----------|
+| 财务模块 | {含义A} | `{table_a}.{field_a}` | 结算场景 |
+| 运营模块 | {含义B} | `{table_b}.{field_b}` | 报表场景 |
+| 客户模块 | {含义C} | `{table_c}.{field_c}` | 展示场景 |
+
+> ⚠️ **建议**: 在{context}场景下统一使用"{recommended_term}"以避免混淆。
+
+---
+
+## 指标定义卡片
+
+### {metric-name}（如：GMV成交金额）
+
+```markdown
+- **业务定义**: {指标的业务含义}
+- **计算公式**: `{formula}`
+- **来源表**: [{table}](../schema/tables/{table}.md)
+- **更新频率**: {频率，如：实时/T+1/小时级}
+- **负责人**: {责任人}
+- **注意事项**:
+  - {注意点1}
+  - {注意点2}
+```
+
+**SQL模板**:
+```sql
+-- {metric-name} 计算
+SELECT
+    DATE(create_time) as dt,
+    SUM({amount_field}) as {metric_name}
+FROM {table}
+WHERE {status_field} NOT IN ('cancelled', 'refunded')
+  AND create_time >= '{start_date}'
+GROUP BY DATE(create_time)
+```
+
+---
+
+## 数据字典对照
+
+### 状态枚举统一
+
+| 状态值 | 显示名 | 业务含义 | 适用场景 |
+|--------|--------|----------|----------|
+| {value1} | {label1} | {含义} | {场景} |
+| {value2} | {label2} | {含义} | {场景} |
+
+### 类型枚举统一
+
+| 类型值 | 显示名 | 说明 |
+|--------|--------|------|
+| {type1} | {label1} | {说明} |
+| {type2} | {label2} | {说明} |
+
+---
+
+## 新成员速查
+
+**最常见的3个查询场景**:
+
+1. **查某用户的订单**:
+   ```sql
+   SELECT * FROM {order_table}
+   WHERE {user_id_field} = ?
+   ```
+
+2. **按天统计{metric_name}**:
+   ```sql
+   SELECT DATE({time_field}), SUM({amount_field})
+   FROM {table}
+   GROUP BY DATE({time_field})
+   ```
+
+3. **关联{entity_a}和{entity_b}**:
+   ```sql
+   SELECT a.*, b.*
+   FROM {table_a} a
+   JOIN {table_b} b ON a.{fk} = b.{pk}
+   ```
+
+**已知数据陷阱**:
+- {field_a} 可能为NULL，查询时需加`COALESCE`
+- {table_b} 包含测试数据，过滤条件需加`is_test = 0`
+- {field_c} 的取值在{version}版本后有变化
 ```
 
 ---
