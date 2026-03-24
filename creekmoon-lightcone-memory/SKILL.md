@@ -1,5 +1,6 @@
 ---
-name: creekmoon-light-cone
+name: creekmoon-lightcone-memory
+version: 1.0.0
 description: 深度业务图谱型项目记忆系统。以高信息密度文档为核心，强制深挖跨模块业务逻辑、隐含依赖和业务不变量。Use when writing code, modifying code, debugging, reviewing code, refactoring, adding features, fixing bugs, understanding codebase, answering code questions, or when user mentions "分析项目", "建立记忆", "更新记忆", "了解项目", "接手项目", "深挖业务". If .light-cone/ exists, ALWAYS start from `00-index.md`.
 ---
 
