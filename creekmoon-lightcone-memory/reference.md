@@ -106,11 +106,18 @@ confidence: high
 - **代码符号**：[`atlas/symbol.md`](atlas/symbol.md)
 - **模块归属**：[`code/modules.md`](code/modules.md)
 
+## 数据模型
+
+- **Schema 总览**：[schema/overview.md](schema/overview.md)
+- **表关系矩阵**：[schema/relations.md](schema/relations.md)
+- **单表文档**：见 schema/tables/ 目录
+
 ## 阅读指南
 
-1. **新接手项目**：context → 核心产物 → 核心流程
+1. **新接手项目**：context → 核心产物 → 核心流程 → Schema总览
 2. **改代码**：定位产物 → 阅读 Deep Business Rules → 查看 Trace
 3. **排查问题**：symptom索引 → 产物 Failure 章节
+4. **理解数据模型**：Schema总览 → 单表文档 → 关系矩阵
 ```
 
 ### 2.2 business/artifacts/{artifact}.md 模板
@@ -437,9 +444,17 @@ confidence: high
 
 ## Tables
 
-| Symbol | Artifact | Description |
-|--------|----------|-------------|
-| `{table}` | [{artifact}](business/artifacts/{artifact}.md) | {描述} |
+### 表归属
+
+| Symbol | Primary Artifact | Schema Doc | Description |
+|--------|------------------|------------|-------------|
+| `{table}` | [{artifact}](business/artifacts/{artifact}.md) | [schema/tables/{table}.md](schema/tables/{table}.md) | {描述} |
+
+### 表关系快速索引
+
+| 表 A | 关系 | 表 B | 关联方式 | Schema 文档 |
+|------|------|------|----------|-------------|
+| {table_a} | 1:N | {table_b} | {foreign_key} | [relations.md](schema/relations.md) |
 ```
 
 ### 2.7 atlas/symptom.md 模板
@@ -489,6 +504,331 @@ confidence: high
 | Controller | {classes} | {purpose} |
 | Service | {classes} | {purpose} |
 | Mapper | {classes} | {purpose} |
+```
+
+### 2.9 schema/overview.md 模板
+
+```markdown
+---
+type: schema-overview
+name: schema-overview
+title: 数据库 Schema 总览
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
+db_type: MySQL
+version: "8.0"
+---
+
+# {数据库名称} Schema 总览
+
+## 数据库信息
+
+| 属性 | 值 |
+|------|-----|
+| 数据库类型 | {MySQL/PostgreSQL/Oracle/etc} |
+| 版本 | {版本号} |
+| 字符集 | {utf8mb4/etc} |
+| 表数量 | {N} |
+
+## 核心表清单
+
+| 表名 | 主要业务产物 | 行数估计 | 核心字段 | Schema 文档 |
+|------|-------------|----------|----------|-------------|
+| `{table_name}` | [{artifact}](business/artifacts/{artifact}.md) | {规模} | {id, status, user_id} | [tables/{table_name}.md](tables/{table_name}.md) |
+
+## ER 图
+
+```mermaid
+erDiagram
+    {TABLE_A} ||--o{ TABLE_B : "外键关系"
+    {TABLE_A} {
+        bigint id PK
+        varchar name
+        int status
+    }
+    {TABLE_B} {
+        bigint id PK
+        bigint table_a_id FK
+        timestamp created_at
+    }
+```
+
+> **说明**：ER 图只显示核心表和关键关系。详细的字段信息请查看各表的独立文档。
+
+## 关键关系说明
+
+| 关系 | 类型 | 业务含义 | 级联规则 |
+|------|------|----------|----------|
+| `{table_a}.{fk_col}` → `{table_b}.{pk_col}` | {1:1/1:N/N:M} | {业务含义} | {CASCADE/SET NULL/RESTRICT} |
+
+## Schema 变更历史
+
+| 日期 | 变更类型 | 表/字段 | 变更内容 | 相关需求 |
+|------|----------|---------|----------|----------|
+| YYYY-MM-DD | ADD | {table}.{column} | {新增字段} | {需求背景} |
+
+## 数据流概览
+
+```
+[用户操作] → [表 A] → [表 B] → [下游系统]
+                ↓
+            [关联表 C]
+```
+
+> 详细的业务数据流请查看 [business/flows/](business/flows/) 目录。
+```
+
+### 2.10 schema/tables/{table}.md 模板
+
+```markdown
+---
+type: schema-table
+name: {table-name}
+title: {表中文名}
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
+primary_artifact: {artifact-name}
+---
+
+# {表名} ({表中文名})
+
+## 表基础信息
+
+| 属性 | 值 |
+|------|-----|
+| 表名 | `{table_name}` |
+| 引擎 | {InnoDB/MyISAM/etc} |
+| 字符集 | {utf8mb4/etc} |
+| 主要业务产物 | [{artifact}](business/artifacts/{artifact}.md) |
+| 数据规模 | {预估行数/增长趋势} |
+
+## DDL / ORM 定义
+
+### 来源
+
+- **DDL 文件**: `{path/to/ddl.sql}`
+- **ORM 实体类**: `{package/EntityClass.java}`
+- **迁移脚本**: `{migration/V001__create_table.sql}`
+
+### 原始 DDL
+
+```sql
+CREATE TABLE `{table_name}` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `status` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+### ORM 注解（如果是 JPA/MyBatis）
+
+```java
+@Entity
+@Table(name = "{table_name}")
+public class {EntityClass} {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private Integer status;
+}
+```
+
+## 字段详解
+
+| 字段名 | 类型 | 可空 | 默认 | 业务含义 | 示例值 | 备注 |
+|--------|------|------|------|----------|--------|------|
+| `id` | bigint | NO | AUTO_INCREMENT | 主键 ID | 12345 | 自增 |
+| `status` | int | NO | 0 | 状态码 | 1=CREATED, 2=PAID | 见状态枚举定义 |
+| `created_at` | timestamp | NO | CURRENT_TIMESTAMP | 创建时间 | 2024-03-14 10:30:00 | 自动填充 |
+
+### 字段业务规则
+
+| 字段 | 业务规则 | 证据位置 |
+|------|----------|----------|
+| `{field}` | {规则描述，如"必须是已存在的用户ID"} | `{ClassName}#method(ParamType)` |
+
+## 索引
+
+| 索引名 | 类型 | 字段 | 用途 | 备注 |
+|--------|------|------|------|------|
+| `PRIMARY` | 主键 | `id` | 唯一标识 | - |
+| `idx_status` | 普通 | `status` | 状态查询 | 常用于 WHERE status=? |
+| `uk_{field}` | 唯一 | `{field}` | 业务唯一约束 | - |
+
+## 关联表
+
+### 外键关系（本表引用其他表）
+
+| 本表字段 | 关联表 | 关联字段 | 关系类型 | 级联规则 | 业务含义 |
+|----------|--------|----------|----------|----------|----------|
+| `{fk_column}` | [{table_b}]({table_b}.md) | `id` | {N:1} | {RESTRICT} | {含义} |
+
+### 被引用关系（其他表引用本表）
+
+| 引用表 | 引用字段 | 本表字段 | 关系类型 | 业务影响 |
+|--------|----------|----------|----------|----------|
+| [{table_c}]({table_c}.md) | `{table_a_id}` | `id` | {1:N} | {删除时需检查} |
+
+### JOIN 查询模式
+
+```java
+// 典型的关联查询模式
+SELECT a.*, b.name
+FROM {table_a} a
+JOIN {table_b} b ON a.{fk_col} = b.id
+WHERE a.status = ?
+```
+
+## 业务规则推断
+
+### 从表结构推断的约束
+
+| 规则 | 推断依据 | 业务含义 |
+|------|----------|----------|
+| `{规则名}` | `{字段}+非空约束` | {业务含义} |
+
+### 状态字段说明（如果有）
+
+| 状态值 | 含义 | 允许转换到 | 触发条件 |
+|--------|------|------------|----------|
+| 0 | INIT | 1, 2 | 初始化 |
+| 1 | CREATED | 2 | 创建完成 |
+| 2 | COMPLETED | - | 处理完成 |
+
+## 证据锚点
+
+- **DDL 文件**: `{path/to/ddl.sql}`
+- **ORM 实体**: `{package/EntityClass.java}`
+- **Mapper 接口**: `{package/MapperClass.java}`
+- **核心业务查询**: `{ServiceClass}#{queryMethod}({ParamType})` — {用途}
+- **关联业务产物**: [business/artifacts/{artifact}.md](business/artifacts/{artifact}.md)
+```
+
+### 2.11 schema/relations.md 模板
+
+```markdown
+---
+type: schema-relations
+name: schema-relations
+title: 表关系矩阵
+coverage: stub
+last_verified: YYYY-MM-DD
+confidence: low
+table_count: 0
+relation_count: 0
+---
+
+# 表关系矩阵
+
+> 本文档汇总所有表之间的关系，提供全局视图。
+> 单表详情请查看 [tables/](tables/) 目录。
+
+## 关系总览
+
+| 统计项 | 数量 |
+|--------|------|
+| 总表数 | {N} |
+| 关系对数 | {M} |
+| 1:1 关系 | {N} |
+| 1:N 关系 | {M} |
+| N:M 关系 | {K} |
+
+## 关系矩阵
+
+### 完整关系表
+
+| 源表 | 关系 | 目标表 | 外键字段 | 级联规则 | 证据位置 | 业务说明 |
+|------|------|--------|----------|----------|----------|----------|
+| [{table_a}](tables/{table_a}.md) | 1:N | [{table_b}](tables/{table_b}.md) | `{table_a_id}` | RESTRICT | `{Class}#{method}()` | {说明} |
+| [{table_a}](tables/{table_a}.md) | N:M | [{table_c}](tables/{table_c}.md) | 通过中间表 | CASCADE | DDL | {说明} |
+
+### 按关系类型分组
+
+#### 1:1 关系
+
+| 表 A | 表 B | 关联字段 | 业务场景 |
+|------|------|----------|----------|
+| `{table_a}` | `{table_b}` | `{table_a}.id = {table_b}.{pk}` | {场景} |
+
+#### 1:N 关系
+
+| 父表 | 子表 | 外键 | 级联规则 |
+|------|------|------|----------|
+| `{parent}` | `{child}` | `{parent_id}` | {CASCADE/RESTRICT} |
+
+#### N:M 关系（通过中间表）
+
+| 表 A | 中间表 | 表 B | 业务含义 |
+|------|--------|------|----------|
+| `{table_a}` | `{table_a_b}` | `{table_b}` | {关系含义} |
+
+## 关系拓扑图
+
+### 核心 ER 图
+
+```mermaid
+erDiagram
+    USER ||--o{ ORDER : "创建"
+    USER {
+        bigint id PK
+        varchar username
+    }
+    ORDER {
+        bigint id PK
+        bigint user_id FK
+        int status
+    }
+    ORDER ||--|| PAYMENT : "关联"
+    PAYMENT {
+        bigint id PK
+        bigint order_id FK
+        decimal amount
+    }
+```
+
+### 完整关系图
+
+```mermaid
+graph TD
+    A[{table_a}] -->|1:N| B[{table_b}]
+    A -->|1:N| C[{table_c}]
+    B -->|N:M| D[{table_d}]
+    C -->|1:1| D
+```
+
+## 关键关系路径
+
+### 业务查询常用路径
+
+| 业务场景 | 表路径 | JOIN 顺序 | 典型查询 |
+|----------|--------|-----------|----------|
+| {场景} | {table_a} → {table_b} → {table_c} | {顺序} | `{Service}#{method}()` |
+
+### 级联删除影响
+
+| 删除表 | 受影响表 | 影响类型 | 处理策略 |
+|--------|----------|----------|----------|
+| `{table_a}` | `{table_b}, {table_c}` | 外键约束 | {阻止删除/级联删除/置空} |
+
+## 隐式关系（代码层面）
+
+> 没有外键约束，但在代码中通过 JOIN 或应用层维护的关系
+
+| 表 A | 表 B | 关联方式 | 代码位置 | 业务说明 |
+|------|------|----------|----------|----------|
+| `{table_a}` | `{table_b}` | 逻辑外键 | `{Class}#{method}()` | {说明} |
+
+## 关系变更历史
+
+| 日期 | 变更 | 涉及表 | 原因 |
+|------|------|--------|------|
+| YYYY-MM-DD | 新增外键 | `{table_a}` → `{table_b}` | {原因} |
 ```
 
 ---
