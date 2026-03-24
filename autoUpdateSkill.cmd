@@ -28,14 +28,6 @@ echo.
 echo  [ Step 0 ]  Testing connectivity...
 echo.
 
-curl -s --max-time 8 "https://raw.githubusercontent.com/creekmoon/creekmoon-claude-skill/master/README.md" -o nul 2>nul
-if not errorlevel 1 (
-    set "RAW=https://raw.githubusercontent.com/creekmoon/creekmoon-claude-skill/master"
-    set "GIT_URL=https://github.com/creekmoon/creekmoon-claude-skill.git"
-    echo          [OK]  GitHub
-    goto :STEP1
-)
-
 curl -s --max-time 8 "https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/README.md" -o nul 2>nul
 if not errorlevel 1 (
     set "RAW=https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master"
@@ -45,7 +37,7 @@ if not errorlevel 1 (
 )
 
 echo.
-echo          [ERROR]  Cannot reach any repository. Check your network.
+echo          [ERROR]  Cannot reach Gitee. Check your network.
 pause & exit /b 1
 
 :: ================================================================
@@ -56,8 +48,8 @@ echo.
 echo  ----------------------------------------------------------------
 echo  [ Step 1 ]  Choose install location
 echo.
-echo          [1]  Global   ->  %USERPROFILE%\.claude\skills
-echo          [2]  Current  ->  %CD%\.claude\skills
+echo          [1]  Global   -^>  %USERPROFILE%\.claude\skills
+echo          [2]  Current  -^>  %CD%\.claude\skills
 echo.
 
 :PICK_LOC

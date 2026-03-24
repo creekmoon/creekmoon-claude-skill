@@ -30,16 +30,10 @@
 在命令行中运行以下命令，会启动交互式安装程序，引导你选择安装位置和要安装的 skill：
 
 ```cmd
-curl -fsSL https://raw.githubusercontent.com/creekmoon/creekmoon-claude-skill/master/autoUpdateSkill.cmd -o install.cmd && install.cmd && del install.cmd
-```
-
-国内网络（Gitee）：
-
-```cmd
 curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpdateSkill.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
-> 需要系统已安装 `curl`（Windows 10 1803+ 内置）。安装程序会自动检测 GitHub / Gitee 连通性，选延迟更低的源下载。
+> 需要系统已安装 `curl`（Windows 10 1803+ 内置）。
 
 ## 使用方式
 
