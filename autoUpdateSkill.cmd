@@ -139,6 +139,13 @@ if "!ANY!"=="N" (
     goto :END
 )
 
+:: Guard: TDIR must be defined before any install operation
+if not defined TDIR (
+    echo.
+    echo          [ERROR]  Install path not set. Aborting.
+    goto :END
+)
+
 echo.
 echo  ----------------------------------------------------------------
 echo  [ Step 3 ]  Installing...
@@ -162,9 +169,15 @@ if "!GITOK!"=="Y" (
         if not exist "%TDIR%" mkdir "%TDIR%"
         for /l %%i in (1,1,7) do (
             if "!SEL%%i!"=="Y" (
-                if exist "%TDIR%\!SK%%i!" rd /s /q "%TDIR%\!SK%%i!" 2>nul
-                xcopy /e /i /q "!REPO!\!SK%%i!" "%TDIR%\!SK%%i!\" >nul 2>nul
-                echo          [OK]   !SK%%i!
+                set "_SRC=!REPO!\!SK%%i!"
+                set "_DST=%TDIR%\!SK%%i!"
+                :: Verify source anchor file exists before mirroring (prevent empty-source wipe)
+                if exist "!_SRC!\SKILL.md" (
+                    robocopy "!_SRC!" "!_DST!" /MIR /NFL /NDL /NJH /NJS >nul 2>nul
+                    echo          [OK]   !SK%%i!
+                ) else (
+                    echo          [SKIP] !SK%%i!  (source incomplete, skipped)
+                )
             )
         )
         rd /s /q "!REPO!" 2>nul
@@ -174,14 +187,20 @@ if "!GITOK!"=="Y" (
     echo.
 )
 
-:: HTTP fallback: downloads SKILL.md only
+:: HTTP fallback: download SKILL.md, then remove any extra files/dirs in the skill folder
 echo          Downloading via HTTP (SKILL.md only)...
 if not exist "%TDIR%" mkdir "%TDIR%"
 for /l %%i in (1,1,7) do (
     if "!SEL%%i!"=="Y" (
-        if not exist "%TDIR%\!SK%%i!" mkdir "%TDIR%\!SK%%i!"
-        curl -fsSL "!RAW!/!SK%%i!/SKILL.md" -o "%TDIR%\!SK%%i!\SKILL.md" 2>nul
+        set "_DST=%TDIR%\!SK%%i!"
+        if not exist "!_DST!" mkdir "!_DST!"
+        curl -fsSL "!RAW!/!SK%%i!/SKILL.md" -o "!_DST!\SKILL.md" 2>nul
         if not errorlevel 1 (
+            :: Remove files other than SKILL.md (file-level sync: keep only what HTTP source has)
+            pushd "!_DST!"
+            for %%f in (*) do if /i not "%%~nxf"=="SKILL.md" del /f /q "%%f" 2>nul
+            for /d %%d in (*) do rd /s /q "%%d" 2>nul
+            popd
             echo          [OK]   !SK%%i!
         ) else (
             echo          [FAIL] !SK%%i!
