@@ -12,7 +12,7 @@ echo  ================================================================
 
 :: ---- Skill definitions (hardcoded, no API needed) ----
 set SK1=creekmoon-apidoc-spec
-set SK2=creekmoon-cerydra-codify
+set SK2=creekmoon-cerydra-codex
 set SK3=creekmoon-code-style
 set SK4=creekmoon-lightcone-memory
 set SK5=creekmoon-prd-spec

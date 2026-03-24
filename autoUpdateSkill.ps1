@@ -116,7 +116,7 @@ if ($dirs.Count -eq 0) {
     cw "  (远程 API 不可用，使用内置列表)" DarkGray
     $dirs = @(
         "creekmoon-apidoc-spec",
-        "creekmoon-cerydra-codify",
+        "creekmoon-cerydra-codex",
         "creekmoon-code-style",
         "creekmoon-lightcone-memory",
         "creekmoon-prd-spec",
