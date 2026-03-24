@@ -9,20 +9,29 @@
 ### Phase 1: 全代码扫描（必须）
 
 ```bash
+# 根据项目技术栈调整文件扩展名和搜索模式
+
 # 1. 识别所有相关代码文件
-grep -r "{keyword}" --include="*.java" src/ | grep -v test
+grep -r "{keyword}" --include="*.{py,js,ts,java,go,rs}" src/ | grep -v test
 
-# 2. 找出状态枚举
-grep -r "enum.*Status\|STATUS_" --include="*.java" src/
+# 2. 找出状态枚举/常量
+grep -r "enum.*Status\|STATUS_\|const.*STATUS" --include="*.{py,js,ts,java,go,rs}" src/
 
-# 3. 找出数据库表
-grep -r "@TableName\|CREATE TABLE" --include="*.java" --include="*.sql" src/ doc/
+# 3. 找出数据结构定义
+grep -r "@TableName\|CREATE TABLE\|class.*Model\|type.*struct\|interface.*{" --include="*.{py,js,ts,java,go,rs,sql}" src/ doc/
 
-# 4. 找出核心 Service
-grep -r "class.*Service" --include="*.java" src/main/java | grep -v impl
+# 4. 找出核心业务逻辑层
+grep -r "class.*Service\|func.*Service\|def.*service\|module.exports" --include="*.{py,js,ts,java,go,rs}" src/ | grep -v test
 
 # 5. 找出消费者（调用方）
-grep -r "{serviceName}\.{method}" --include="*.java" src/
+grep -r "{serviceName}\.{method}\|{functionName}(" --include="*.{py,js,ts,java,go,rs}" src/
+
+# 【关键】6. 数据关系深度扫描 - 不要只停留在结构定义
+grep -r "JOIN\|join\|lookup\|populate\|select_related\|prefetch_related" --include="*.{py,js,ts,java,go,rs}" src/
+grep -r "transaction\|Transaction\|atomic\|Atomic\|@Transactional\|with transaction" --include="*.{py,js,ts,java,go,rs}" src/
+# 查看业务逻辑层如何同时操作多张表/集合
+# 追踪：创建 A 时是否同步创建 B？
+# 追踪：状态变更是否会触发关联数据更新？
 ```
 
 ### Phase 2: 深度挖掘
@@ -62,6 +71,16 @@ grep -r "{serviceName}\.{method}" --include="*.java" src/
 - [ ] 不一致的检测方式？
 - [ ] 不一致的修复方式？
 - [ ] 业务能否接受暂时不一致？多久？
+
+### 数据关系（关键 - 不要流于表面）
+- [ ] 代码中有哪些关联查询模式？哪些表/集合经常一起查？
+- [ ] 哪些数据在原子操作/事务边界内一起操作？
+- [ ] 创建 A 时必定同步创建哪些关联 B？
+- [ ] 状态变更会触发哪些关联数据更新？
+- [ ] 哪些是应用层维护的隐式关联（无物理外键/引用）？
+- [ ] 跨数据操作有什么时序要求？顺序错误的影响？
+- [ ] 哪些跨数据状态必须同时为真？（业务不变量）
+- [ ] 删除/作废一行数据会如何传播？
 ```
 
 ---
@@ -186,7 +205,7 @@ stateDiagram-v2
 约束1: {模块A} 依赖 {模块B} 的 {条件}
 - 场景: {什么情况下}
 - 风险: {违反时发生什么}
-- 代码位置: {file:line}
+- 代码位置: {文件路径} 或 {ClassName}.{method}()
 ```
 
 ### Implicit Dependencies（隐式依赖）
@@ -226,11 +245,11 @@ stateDiagram-v2
 
 ### Transaction & Async Boundaries
 
-| Method | Type | Notes |
+| Method/Function | Type | Notes |
 |--------|------|-------|
-| `{method}()` | Transactional | 回滚范围: {说明} |
-| `{method}()` | Async | 线程池: {pool}, 超时: {time} |
-| `{method}()` | External API | 超时: {time}, 重试: {yes/no} |
+| `{method}()` | 原子操作边界内 | 回滚范围: {说明} |
+| `{method}()` | 异步 | 执行器: {executor}, 超时: {time} |
+| `{method}()` | 外部 API | 超时: {time}, 重试: {yes/no} |
 
 ### Side Effects（副作用顺序）
 
@@ -242,7 +261,7 @@ stateDiagram-v2
 
 | Location | Current Logic | Risk If Changed | Validation Rule |
 |----------|---------------|-----------------|-----------------|
-| `{ClassName}#{method}({ParamType})` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
+| `{文件路径}` 或 `{ClassName}.{method}()` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
 
 ## Failure & Degradation
 
@@ -378,9 +397,9 @@ confidence: high
 ## Architecture Overview
 
 ```
-[External] → [Controller] → [Service] → [Mapper] → [DB]
-                ↓
-            [External API]
+[外部系统] → [接口层] → [业务逻辑层] → [数据访问层] → [数据存储]
+                          ↓
+                     [外部服务/API]
 ```
 
 ## Tech Stack

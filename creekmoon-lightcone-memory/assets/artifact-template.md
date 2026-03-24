@@ -97,11 +97,11 @@ stateDiagram-v2
 
 ### Transaction & Async Boundaries
 
-| Method | Type | Notes |
+| Method/Function | Type | Notes |
 |--------|------|-------|
-| `{method}()` | Transactional | 回滚范围: {说明} |
-| `{method}()` | Async | 线程池: {pool}, 超时: {time} |
-| `{method}()` | External API | 超时: {time}, 重试: {yes/no} |
+| `{method}()` | 原子操作边界内 | 回滚范围: {说明} |
+| `{method}()` | 异步 | 执行器: {executor}, 超时: {time} |
+| `{method}()` | 外部 API | 超时: {time}, 重试: {yes/no} |
 
 ### Side Effects（副作用顺序）
 
@@ -113,9 +113,9 @@ stateDiagram-v2
 
 | Location | Current Logic | Risk If Changed | Validation Rule |
 |----------|---------------|-----------------|-----------------|
-| `{ClassName}#{method}({ParamType})` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
+| `{文件路径}` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
 
-> **格式说明**：使用 `ClassName#method(ParamType)` 签名格式，不记录行号。行号在代码 Insert/Delete 后会漂移且无法自动检测。Agent 可用 Grep 工具一步定位方法。
+> **格式说明**：使用文件路径或 `{ClassName}.{method}(ParamType)` 签名格式，不记录行号。行号在代码 Insert/Delete 后会漂移且无法自动检测。Agent 可用 Grep 工具一步定位方法。
 
 ## Failure & Degradation
 
@@ -125,19 +125,19 @@ stateDiagram-v2
 
 ## Evidence Anchors
 
-### Core Classes
-- `{ClassName}`: `{package}/{ClassName}.java`
+### Core Classes/Modules
+- `{ClassName}`: `{path/to/file.py}` 或 `{path/to/module.ts}` 或 `{package/ClassName.java}`
 
-### Enums
-- `{StatusEnum}`: `{package}/{StatusEnum}.java`
+### Enums/Constants
+- `{StatusEnum}`: `{path/to/constants.py}` 或 `{path/to/enums.ts}` 或 `{package/StatusEnum.java}`
 
-### DB Tables
-- `{table}`: `{ddl-file}.sql`
+### Data Stores
+- `{table/collection}`: `{ddl-file}.sql` 或 `{schema-file}.prisma`
 
-### Key Methods
-- `{ClassName}#{method}({ParamType})` — {核心逻辑描述}
+### Key Methods/Functions
+- `{文件路径}` 或 `{ClassName}.{method}(ParamType)` — {核心逻辑描述}
 
-> **格式说明**：使用方法签名 + 语义描述，不记录行号。示例：`OrderService#cancel(Long)` — 先退款再改状态，需保证事务内完成
+> **格式说明**：使用文件路径 + 语义描述，不记录行号。示例：`order_service.cancel(order_id)` — 先退款再改状态，需保证原子操作内完成
 
 ## Related
 

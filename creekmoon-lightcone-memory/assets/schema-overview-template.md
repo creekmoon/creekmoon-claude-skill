@@ -1,7 +1,7 @@
 ---
 type: schema-overview
 name: schema-overview
-title: 数据库 Schema 总览
+title: 数据 Schema 总览
 coverage: stub
 last_verified: YYYY-MM-DD
 confidence: low
@@ -9,22 +9,22 @@ db_type: MySQL
 version: "8.0"
 ---
 
-# {数据库名称} Schema 总览
+# {数据存储名称} Schema 总览
 
-## 数据库信息
+## 数据存储信息
 
 | 属性 | 值 |
 |------|-----|
-| 数据库类型 | {MySQL/PostgreSQL/Oracle/etc} |
+| 存储类型 | {MySQL/PostgreSQL/MongoDB/DynamoDB/etc} |
 | 版本 | {版本号} |
-| 字符集 | {utf8mb4/etc} |
-| 表数量 | {N} |
+| 字符集/编码 | {utf8mb4/etc} |
+| 表/集合数量 | {N} |
 
 ## 核心表清单
 
-| 表名 | 主要业务产物 | 行数估计 | 核心字段 | Schema 文档 |
-|------|-------------|----------|----------|-------------|
-| `{table_name}` | [{artifact}](business/artifacts/{artifact}.md) | {规模} | {id, status, user_id} | [tables/{table_name}.md](tables/{table_name}.md) |
+| 表/集合名 | 主要业务产物 | 数据规模估计 | 核心字段 | Schema 文档 |
+|------------|-------------|--------------|----------|-------------|
+| `{table/collection_name}` | [{artifact}](business/artifacts/{artifact}.md) | {规模} | {id, status, user_id} | [tables/{table_name}.md](tables/{table_name}.md) |
 
 ## ER 图
 

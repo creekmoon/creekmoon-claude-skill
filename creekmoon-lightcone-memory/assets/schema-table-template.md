@@ -35,15 +35,16 @@ logical_entity: {entity-name}
 | **relational** | 关系表 | `_rel`, `_map`, `_link` | 多对多映射，无业务含义主键 |
 | **core** | 核心表 | 核心业务名词 | 业务核心实体主表 |
 
-## DDL / ORM 定义
+## 数据定义来源
 
 ### 来源
 
 - **DDL 文件**: `{path/to/ddl.sql}`
-- **ORM 实体类**: `{package/EntityClass.java}`
+- **实体定义文件**: `{path/to/entity.py}` 或 `{path/to/model.ts}` 或 `{package/EntityClass.java}`
 - **迁移脚本**: `{migration/V001__create_table.sql}`
+- **ORM/ODM 配置**: `{path/to/schema.prisma}` 或 `{path/to/models.py}`
 
-### 原始 DDL
+### 数据定义示例
 
 ```sql
 CREATE TABLE `{table_name}` (
@@ -55,9 +56,28 @@ CREATE TABLE `{table_name}` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
-### ORM 注解（如果是 JPA/MyBatis）
+### 实体层映射（ORM/ODM）
+
+```python
+# Python/SQLAlchemy 示例
+class {EntityClass}(Base):
+    __tablename__ = "{table_name}"
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    status = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.now)
+```
+
+```typescript
+// TypeScript/Prisma 示例
+model {EntityClass} {
+  id        BigInt   @id @default(autoincrement())
+  status    Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+}
+```
 
 ```java
+// Java/JPA 示例
 @Entity
 @Table(name = "{table_name}")
 public class {EntityClass} {
@@ -65,7 +85,7 @@ public class {EntityClass} {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "int default 0")
+    @Column(nullable = false)
     private Integer status;
 }
 ```
@@ -82,7 +102,7 @@ public class {EntityClass} {
 
 | 字段 | 业务规则 | 证据位置 |
 |------|----------|----------|
-| `{field}` | {规则描述，如"必须是已存在的用户ID"} | `{ClassName}#method(ParamType)` |
+| `{field}` | {规则描述，如"必须是已存在的用户ID"} | `{文件路径}` 或 `{ClassName}.{method}()` |
 
 ## 索引
 
@@ -106,14 +126,24 @@ public class {EntityClass} {
 |--------|----------|----------|----------|----------|
 | [{table_c}]({table_c}.md) | `{table_a_id}` | `id` | {1:N} | {删除时需检查} |
 
-### JOIN 查询模式
+### 关联查询模式
 
-```java
-// 典型的关联查询模式
+```sql
+-- SQL 关联查询示例
 SELECT a.*, b.name
 FROM {table_a} a
 JOIN {table_b} b ON a.{fk_col} = b.id
 WHERE a.status = ?
+```
+
+```python
+# Python/SQLAlchemy 示例
+session.query(TableA).join(TableB, TableA.fk_col == TableB.id).filter(...)
+```
+
+```typescript
+// TypeScript/Prisma 示例
+prisma.tableA.findMany({ include: { tableB: true } })
 ```
 
 ## 逻辑实体归属
@@ -144,8 +174,8 @@ WHERE a.status = ?
 | 字段名 | 来源类型 | 来源说明 | 计算公式/推导规则 | 证据位置 |
 |--------|----------|----------|-------------------|----------|
 | `{native_field}` | 原生 | 直接存储 | - | 用户输入/外部系统 |
-| `{calculated_field}` | 计算 | 代码生成 | `{formula}` | `{Class}#{method}()` |
-| `{derived_field}` | 冗余 | 可从其他字段推导 | 由`{source_field}`{推导规则} | `{Class}#{method}()` |
+| `{calculated_field}` | 计算 | 代码生成 | `{formula}` | `{文件路径}` |
+| `{derived_field}` | 冗余 | 可从其他字段推导 | 由`{source_field}`{推导规则} | `{文件路径}` |
 
 ### 计算字段详情
 
@@ -158,7 +188,7 @@ WHERE a.status = ?
 
 | 冗余字段 | 源字段 | 推导规则 | 一致性检查 |
 |----------|--------|----------|------------|
-| `{redundant_field}` | `{source_field}` | {规则} | `{Checker}#checkConsistency()` |
+| `{redundant_field}` | `{source_field}` | {规则} | `{文件路径}` 或 `{Checker}.{checkMethod}()` |
 
 ## 数据质量验证
 
@@ -253,9 +283,11 @@ ORDER BY cnt DESC;
 ## 证据锚点
 
 - **DDL 文件**: `{path/to/ddl.sql}`
-- **ORM 实体**: `{package/EntityClass.java}`
-- **Mapper 接口**: `{package/MapperClass.java}`
-- **核心业务查询**: `{ServiceClass}#{queryMethod}({ParamType})` — {用途}
+- **实体定义**: `{path/to/entity.py}` 或 `{path/to/model.ts}` 或 `{package/EntityClass.java}`
+- **数据访问层**: `{path/to/repository.py}` 或 `{path/to/mapper.java}`
+- **核心业务查询**: `{文件路径}` — {用途}
 - **关联业务产物**: [business/artifacts/{artifact}.md](business/artifacts/{artifact}.md)
 - **逻辑实体**: [atlas/entities.md#{entity}](../atlas/entities.md#{entity})
 - **业务术语**: [atlas/glossary.md](../atlas/glossary.md)
+
+> **格式说明**：使用文件路径或 `{ClassName}.{method}()` 签名格式定位代码，不记录行号。行号在代码 Insert/Delete 后会漂移且无法自动检测。Agent 可用 Grep 工具一步定位。
