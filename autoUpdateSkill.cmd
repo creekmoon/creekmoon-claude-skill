@@ -18,6 +18,7 @@ set SK4=creekmoon-lightcone-memory
 set SK5=creekmoon-prd-spec
 set SK6=creekmoon-trd-spec
 set SK7=creekmoon-weekly-report
+set SK8=brainstorming
 
 set TMPF=%TEMP%\csk_%RANDOM%.tmp
 
@@ -74,7 +75,7 @@ echo  ----------------------------------------------------------------
 echo  [ Step 2 ]  Fetching skill versions (please wait)...
 echo.
 
-for /l %%i in (1,1,7) do (
+for /l %%i in (1,1,8) do (
     set "RV%%i=N/A"
     set "LV%%i=---"
     call :FETCH_REMOTE_VER %%i
@@ -84,7 +85,7 @@ for /l %%i in (1,1,7) do (
 echo.
 echo  #    Skill Name                               Remote       Installed    Status
 echo  ---- ---------------------------------------- ------------ ------------ --------
-for /l %%i in (1,1,7) do (
+for /l %%i in (1,1,8) do (
     set "ST=[new   ]"
     if "!LV%%i!"=="!RV%%i!"  set "ST=[ok    ]"
     if not "!LV%%i!"=="---" (
@@ -112,17 +113,17 @@ set /p INP=         ^>^>
 if not defined INP goto :PICK_SKILLS
 if /i "!INP!"=="Q" exit /b 0
 
-for /l %%i in (1,1,7) do set "SEL%%i=N"
+for /l %%i in (1,1,8) do set "SEL%%i=N"
 
 if /i "!INP!"=="A" (
-    for /l %%i in (1,1,7) do set "SEL%%i=Y"
+    for /l %%i in (1,1,8) do set "SEL%%i=Y"
     goto :STEP3
 )
 
 :: Parse comma-separated numbers
 set "_P=!INP:,= !"
 for %%n in (!_P!) do (
-    for /l %%i in (1,1,7) do (
+    for /l %%i in (1,1,8) do (
         if "%%n"=="%%i" set "SEL%%i=Y"
     )
 )
@@ -132,7 +133,7 @@ for %%n in (!_P!) do (
 :: ================================================================
 :STEP3
 set "ANY=N"
-for /l %%i in (1,1,7) do if "!SEL%%i!"=="Y" set "ANY=Y"
+for /l %%i in (1,1,8) do if "!SEL%%i!"=="Y" set "ANY=Y"
 if "!ANY!"=="N" (
     echo.
     echo          Nothing selected. Exiting.
@@ -151,7 +152,7 @@ echo  ----------------------------------------------------------------
 echo  [ Step 3 ]  Installing...
 echo.
 echo          Will install:
-for /l %%i in (1,1,7) do (
+for /l %%i in (1,1,8) do (
     if "!SEL%%i!"=="Y" echo              - !SK%%i!
 )
 echo.
@@ -167,7 +168,7 @@ if "!GITOK!"=="Y" (
     git clone --depth 1 "!GIT_URL!" "!REPO!" 2>nul
     if not errorlevel 1 (
         if not exist "%TDIR%" mkdir "%TDIR%"
-        for /l %%i in (1,1,7) do (
+        for /l %%i in (1,1,8) do (
             if "!SEL%%i!"=="Y" (
                 set "_SRC=!REPO!\!SK%%i!"
                 set "_DST=%TDIR%\!SK%%i!"
@@ -190,7 +191,7 @@ if "!GITOK!"=="Y" (
 :: HTTP fallback: download SKILL.md, then remove any extra files/dirs in the skill folder
 echo          Downloading via HTTP (SKILL.md only)...
 if not exist "%TDIR%" mkdir "%TDIR%"
-for /l %%i in (1,1,7) do (
+for /l %%i in (1,1,8) do (
     if "!SEL%%i!"=="Y" (
         set "_DST=%TDIR%\!SK%%i!"
         if not exist "!_DST!" mkdir "!_DST!"
