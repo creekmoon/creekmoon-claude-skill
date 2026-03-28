@@ -1,12 +1,12 @@
 ---
 name: creekmoon-code-style
-version: 1.0.0
-description: 江岳的代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于需要判断方法中的主次流程、Happy Path、常规路径与测试旁路/兼容分支先后关系的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves distinguishing the main business path from test bypasses, compatibility branches, fallback flows, or other special cases.
+version: 1.0.1
+description: creekmoon的JAVA代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于需要判断方法中的主次流程、Happy Path、常规路径与测试旁路/兼容分支先后关系的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves distinguishing the main business path from test bypasses, compatibility branches, fallback flows, or other special cases.
 ---
 
 # Creekmoon Code Style
 
-适用于所有编程语言和项目。规范方法设计与抽取粒度、Service 层公共方法入参风格、方法内部流程组织（主流程优先）、命名与副作用边界（Name == Behavior）。
+适用于JAVA语言和项目。规范方法设计与抽取粒度、入参风格、方法内部流程组织（主流程优先）、命名与副作用边界（Name == Behavior）。
 
 ## 核心规则
 
