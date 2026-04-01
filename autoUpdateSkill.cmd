@@ -10,17 +10,12 @@ echo  ================================================================
 echo    Creekmoon Claude Skill Installer
 echo  ================================================================
 
-:: ---- Skill definitions (hardcoded, no API needed) ----
-set SK1=creekmoon-apidoc-spec
-set SK2=creekmoon-cerydra-codex
-set SK3=creekmoon-code-style
-set SK4=creekmoon-lightcone-memory
-set SK5=creekmoon-prd-spec
-set SK6=creekmoon-trd-spec
-set SK7=creekmoon-weekly-report
-set SK8=brainstorming
-
 set TMPF=%TEMP%\csk_%RANDOM%.tmp
+set "SKCOUNT=0"
+set "GITOK=N"
+set "REPO_READY=N"
+set "REPO="
+set "API_URL=https://gitee.com/api/v5/repos/creekmoon/creekmoon-claude-skill/contents"
 
 :: ================================================================
 :: STEP 0 - Connectivity
@@ -34,6 +29,8 @@ if not errorlevel 1 (
     set "RAW=https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master"
     set "GIT_URL=https://gitee.com/creekmoon/creekmoon-claude-skill.git"
     echo          [OK]  Gitee
+    git --version >nul 2>nul
+    if not errorlevel 1 set "GITOK=Y"
     goto :STEP1
 )
 
@@ -72,10 +69,16 @@ echo.
 echo          Install to: %TDIR%
 echo.
 echo  ----------------------------------------------------------------
-echo  [ Step 2 ]  Fetching skill versions (please wait)...
+echo  [ Step 2 ]  Discovering skills and versions (please wait)...
 echo.
 
-for /l %%i in (1,1,8) do (
+call :LOAD_SKILLS
+if "%SKCOUNT%"=="0" (
+    echo          [ERROR]  No skills found from remote source.
+    goto :END
+)
+
+for /l %%i in (1,1,%SKCOUNT%) do (
     set "RV%%i=N/A"
     set "LV%%i=---"
     call :FETCH_REMOTE_VER %%i
@@ -85,7 +88,7 @@ for /l %%i in (1,1,8) do (
 echo.
 echo  #    Skill Name                               Remote       Installed    Status
 echo  ---- ---------------------------------------- ------------ ------------ --------
-for /l %%i in (1,1,8) do (
+for /l %%i in (1,1,%SKCOUNT%) do (
     set "ST=[new   ]"
     if "!LV%%i!"=="!RV%%i!"  set "ST=[ok    ]"
     if not "!LV%%i!"=="---" (
@@ -111,19 +114,19 @@ echo.
 set "INP="
 set /p INP=         ^>^> 
 if not defined INP goto :PICK_SKILLS
-if /i "!INP!"=="Q" exit /b 0
+if /i "!INP!"=="Q" goto :END
 
-for /l %%i in (1,1,8) do set "SEL%%i=N"
+for /l %%i in (1,1,%SKCOUNT%) do set "SEL%%i=N"
 
 if /i "!INP!"=="A" (
-    for /l %%i in (1,1,8) do set "SEL%%i=Y"
+    for /l %%i in (1,1,%SKCOUNT%) do set "SEL%%i=Y"
     goto :STEP3
 )
 
 :: Parse comma-separated numbers
 set "_P=!INP:,= !"
 for %%n in (!_P!) do (
-    for /l %%i in (1,1,8) do (
+    for /l %%i in (1,1,%SKCOUNT%) do (
         if "%%n"=="%%i" set "SEL%%i=Y"
     )
 )
@@ -133,7 +136,7 @@ for %%n in (!_P!) do (
 :: ================================================================
 :STEP3
 set "ANY=N"
-for /l %%i in (1,1,8) do if "!SEL%%i!"=="Y" set "ANY=Y"
+for /l %%i in (1,1,%SKCOUNT%) do if "!SEL%%i!"=="Y" set "ANY=Y"
 if "!ANY!"=="N" (
     echo.
     echo          Nothing selected. Exiting.
@@ -152,38 +155,26 @@ echo  ----------------------------------------------------------------
 echo  [ Step 3 ]  Installing...
 echo.
 echo          Will install:
-for /l %%i in (1,1,8) do (
+for /l %%i in (1,1,%SKCOUNT%) do (
     if "!SEL%%i!"=="Y" echo              - !SK%%i!
 )
 echo.
 
-:: Try git clone first (gets full directory including assets)
-set "GITOK=N"
-git --version >nul 2>nul
-if not errorlevel 1 set "GITOK=Y"
-
 if "!GITOK!"=="Y" (
+    if "!REPO_READY!"=="Y" (
+        call :INSTALL_FROM_REPO
+        goto :DONE
+    )
     set "REPO=%TEMP%\csk_%RANDOM%"
     echo          Cloning repository...
     git clone --depth 1 "!GIT_URL!" "!REPO!" 2>nul
     if not errorlevel 1 (
-        if not exist "%TDIR%" mkdir "%TDIR%"
-        for /l %%i in (1,1,8) do (
-            if "!SEL%%i!"=="Y" (
-                set "_SRC=!REPO!\!SK%%i!"
-                set "_DST=%TDIR%\!SK%%i!"
-                :: Verify source anchor file exists before mirroring (prevent empty-source wipe)
-                if exist "!_SRC!\SKILL.md" (
-                    robocopy "!_SRC!" "!_DST!" /MIR /NFL /NDL /NJH /NJS >nul 2>nul
-                    echo          [OK]   !SK%%i!
-                ) else (
-                    echo          [SKIP] !SK%%i!  (source incomplete, skipped)
-                )
-            )
-        )
-        rd /s /q "!REPO!" 2>nul
+        set "REPO_READY=Y"
+        call :INSTALL_FROM_REPO
         goto :DONE
     )
+    if exist "!REPO!" rd /s /q "!REPO!" 2>nul
+    set "REPO="
     echo          git clone failed, falling back to HTTP...
     echo.
 )
@@ -191,7 +182,7 @@ if "!GITOK!"=="Y" (
 :: HTTP fallback: download SKILL.md, then remove any extra files/dirs in the skill folder
 echo          Downloading via HTTP (SKILL.md only)...
 if not exist "%TDIR%" mkdir "%TDIR%"
-for /l %%i in (1,1,8) do (
+for /l %%i in (1,1,%SKCOUNT%) do (
     if "!SEL%%i!"=="Y" (
         set "_DST=%TDIR%\!SK%%i!"
         if not exist "!_DST!" mkdir "!_DST!"
@@ -217,6 +208,7 @@ echo    %TDIR%
 echo  ================================================================
 
 :END
+if defined REPO if exist "%REPO%" rd /s /q "%REPO%" 2>nul
 if exist "%TMPF%" del "%TMPF%" 2>nul
 echo.
 pause
@@ -225,6 +217,53 @@ exit /b 0
 :: ================================================================
 :: Subroutines
 :: ================================================================
+
+:LOAD_SKILLS
+set "SKCOUNT=0"
+if "!GITOK!"=="Y" (
+    set "REPO=%TEMP%\csk_%RANDOM%"
+    git clone --depth 1 "!GIT_URL!" "!REPO!" >nul 2>nul
+    if not errorlevel 1 (
+        set "REPO_READY=Y"
+        for /f "delims=" %%d in ('dir /b /ad /on "!REPO!" 2^>nul') do (
+            if exist "!REPO!\%%d\SKILL.md" call :ADD_SKILL "%%d"
+        )
+    ) else (
+        if exist "!REPO!" rd /s /q "!REPO!" 2>nul
+        set "REPO="
+    )
+)
+if "!SKCOUNT!"=="0" call :LOAD_SKILLS_HTTP
+goto :EOF
+
+:LOAD_SKILLS_HTTP
+for /f "usebackq delims=" %%d in (`powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $items = Invoke-RestMethod '%API_URL%'; $items | Where-Object { $_.type -eq 'dir' } | Sort-Object name | ForEach-Object { $_.name }" 2^>nul`) do (
+    curl -fsSL "!RAW!/%%d/SKILL.md" -o nul 2>nul
+    if not errorlevel 1 call :ADD_SKILL "%%d"
+)
+goto :EOF
+
+:ADD_SKILL
+set /a SKCOUNT+=1
+set "SK!SKCOUNT!=%~1"
+goto :EOF
+
+:INSTALL_FROM_REPO
+if not exist "%TDIR%" mkdir "%TDIR%"
+for /l %%i in (1,1,%SKCOUNT%) do (
+    if "!SEL%%i!"=="Y" (
+        set "_SRC=!REPO!\!SK%%i!"
+        set "_DST=%TDIR%\!SK%%i!"
+        :: Verify source anchor file exists before mirroring (prevent empty-source wipe)
+        if exist "!_SRC!\SKILL.md" (
+            robocopy "!_SRC!" "!_DST!" /MIR /NFL /NDL /NJH /NJS >nul 2>nul
+            echo          [OK]   !SK%%i!
+        ) else (
+            echo          [SKIP] !SK%%i!  (source incomplete, skipped)
+        )
+    )
+)
+goto :EOF
 
 :FETCH_REMOTE_VER
 :: Fetch remote SKILL.md and extract version into RV%1
