@@ -9,7 +9,7 @@ confidence: low
 
 # {业务名称}
 
-## Why Exists
+## Why Exists（只写已证实内容）
 
 **一句话定义**：{这个产物是什么}
 
@@ -18,6 +18,17 @@ confidence: low
 **失败影响**：{失败时影响什么业务}
 
 **无影响范围**：{失败时不影响什么，可降级}
+
+## Boundary & Confidence
+
+### Confirmed Facts（已证实事实）
+- `{结论}` — 证据：`{ClassName}#{method}()` / `{table_name}`
+
+### Evidence-backed Inferences（证据支持的推断）
+- `{结论}` — 基于 `{evidence}` 归纳；限制：`{limit}`
+
+### To Verify（待验证事项）
+- `{疑点}` — 当前缺失 `{missing_evidence}`
 
 ## Lifecycle
 
@@ -57,14 +68,14 @@ stateDiagram-v2
 约束1: {模块A} 依赖 {模块B} 的 {条件}
 - 场景: {什么情况下}
 - 风险: {违反时发生什么}
-- 代码位置: {file:line}
+- 代码位置: {文件路径} 或 {ClassName}#{method}(ParamType)
 ```
 
 ### Implicit Dependencies（隐式依赖）
 
 ```
 依赖1: {字段} 实际由 {X} 维护，{Y} 直接读取
-- 假设: {Y} 假设 {条件}
+- 读取方默认前提: {Y} 默认 {条件}
 - 违反场景: {什么情况}
 - 后果: {会发生什么}
 ```
@@ -115,7 +126,7 @@ stateDiagram-v2
 |----------|---------------|-----------------|-----------------|
 | `{文件路径}` | {当前逻辑} | {改动风险} | {必须遵守的规则} |
 
-> **格式说明**：使用文件路径或 `{ClassName}.{method}(ParamType)` 签名格式，不记录行号。行号在代码 Insert/Delete 后会漂移且无法自动检测。Agent 可用 Grep 工具一步定位方法。
+> **格式说明**：使用文件路径或 `{ClassName}.{method}(ParamType)` 签名格式，不记录行号。行号在代码 Insert/Delete 后会漂移且无法自动检测。Agent 可用搜索工具一步定位方法。
 
 ## Failure & Degradation
 
@@ -143,3 +154,8 @@ stateDiagram-v2
 
 - **Flows**: [{flow}](business/flows/{flow}.md)
 - **Related Artifacts**: [{artifact}](business/artifacts/{artifact}.md)
+
+> **写作提醒**：
+> - `Why Exists` 只能写已证实内容。
+> - 需要解释但尚未完全闭环的结论，放进 `Evidence-backed Inferences`。
+> - 只有命名、DTO、注释、局部接口支撑的判断，放进 `To Verify`。

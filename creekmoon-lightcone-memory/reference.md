@@ -12,29 +12,59 @@
 # 根据项目技术栈调整文件扩展名和搜索模式
 
 # 1. 识别所有相关代码文件
-grep -r "{keyword}" --include="*.{py,js,ts,java,go,rs}" src/ | grep -v test
+rg "{keyword}" src/ -g "*.{py,js,ts,java,go,rs}" -g "!*test*"
 
 # 2. 找出状态枚举/常量
-grep -r "enum.*Status\|STATUS_\|const.*STATUS" --include="*.{py,js,ts,java,go,rs}" src/
+rg "enum.*Status|STATUS_|const.*STATUS" src/ -g "*.{py,js,ts,java,go,rs}"
 
 # 3. 找出数据结构定义
-grep -r "@TableName\|CREATE TABLE\|class.*Model\|type.*struct\|interface.*{" --include="*.{py,js,ts,java,go,rs,sql}" src/ doc/
+rg "@TableName|CREATE TABLE|class.*Model|type.*struct|interface.*\{" src/ doc/ -g "*.{py,js,ts,java,go,rs,sql}"
 
 # 4. 找出核心业务逻辑层
-grep -r "class.*Service\|func.*Service\|def.*service\|module.exports" --include="*.{py,js,ts,java,go,rs}" src/ | grep -v test
+rg "class.*Service|func.*Service|def.*service|module.exports" src/ -g "*.{py,js,ts,java,go,rs}" -g "!*test*"
 
 # 5. 找出消费者（调用方）
-grep -r "{serviceName}\.{method}\|{functionName}(" --include="*.{py,js,ts,java,go,rs}" src/
+rg "{serviceName}\.{method}|{functionName}\(" src/ -g "*.{py,js,ts,java,go,rs}"
 
 # 【关键】6. 数据关系深度扫描 - 不要只停留在结构定义
-grep -r "JOIN\|join\|lookup\|populate\|select_related\|prefetch_related" --include="*.{py,js,ts,java,go,rs}" src/
-grep -r "transaction\|Transaction\|atomic\|Atomic\|@Transactional\|with transaction" --include="*.{py,js,ts,java,go,rs}" src/
+rg "JOIN|join|lookup|populate|select_related|prefetch_related" src/ -g "*.{py,js,ts,java,go,rs}"
+rg "transaction|Transaction|atomic|Atomic|@Transactional|with transaction" src/ -g "*.{py,js,ts,java,go,rs}"
 # 查看业务逻辑层如何同时操作多张表/集合
 # 追踪：创建 A 时是否同步创建 B？
 # 追踪：状态变更是否会触发关联数据更新？
 ```
 
-### Phase 2: 深度挖掘
+### Phase 2: 结论草稿
+
+在写正文前，先整理“候选结论清单”：
+
+```markdown
+| 候选结论 | 结论类型 | 证据锚点 | 当前判断 | 正文去向 |
+|---------|----------|----------|----------|----------|
+| {结论} | 事实 / 推断 / 待验证 | {方法签名}/{表}/{配置} | 证据充分 / 需降级 / 暂不下结论 | Why Exists / Boundary & Confidence / To Verify |
+```
+
+判定建议：
+
+- **事实**：有直接代码、DDL、配置、主流程证据支持
+- **推断**：由多个证据共同指向，但仍有边界条件
+- **待验证**：只有命名、DTO、注释、外部术语或局部接口痕迹，不能当事实写
+
+### Phase 3: 记忆审查
+
+在正文落笔前，先做一次反向审查：
+
+```markdown
+## 记忆审查清单
+
+- [ ] 这个结论是否被直接证据证明，而不是被命名“暗示”？
+- [ ] 我写的是系统自有能力，还是只是对接/适配外部能力？
+- [ ] 去掉接口名、字段名、术语后，这个结论还能成立吗？
+- [ ] 是否存在更保守但同样解释代码的说法？
+- [ ] 如果证据不足，这个结论是否已降级到 To Verify？
+```
+
+### Phase 4: 深度挖掘
 
 使用以下问题清单：
 
@@ -103,7 +133,18 @@ confidence: high
 
 ## 一句话描述
 
-{项目核心业务}
+{项目核心业务，仅写已证实内容}
+
+## 边界提示
+
+### Confirmed Facts
+- {项目已证实的核心能力}
+
+### Evidence-backed Inferences
+- {对项目边界的推断；说明依据与限制}
+
+### To Verify
+- {仍待验证的系统定位、外部系统归属、业务闭环判断}
 
 ## 核心产物（Artifacts）
 
@@ -153,7 +194,7 @@ confidence: high
 
 # {业务名称}
 
-## Why Exists
+## Why Exists（只写已证实内容）
 
 **一句话定义**：{这个产物是什么}
 
@@ -162,6 +203,17 @@ confidence: high
 **失败影响**：{失败时影响什么业务}
 
 **无影响范围**：{失败时不影响什么，可降级}
+
+## Boundary & Confidence
+
+### Confirmed Facts（已证实事实）
+- {结论} — 证据：`{ClassName}#{method}()` / `{table}`
+
+### Evidence-backed Inferences（证据支持的推断）
+- {结论} — 基于 `{evidence}` 归纳；限制：{limit}
+
+### To Verify（待验证事项）
+- {疑点} — 当前缺失 `{missing_evidence}`
 
 ## Lifecycle
 
@@ -212,7 +264,7 @@ stateDiagram-v2
 
 ```
 依赖1: {字段} 实际由 {X} 维护，{Y} 直接读取
-- 假设: {Y} 假设 {条件}
+- 读取方默认前提: {Y} 默认 {条件}
 - 违反场景: {什么情况}
 - 后果: {会发生什么}
 ```
@@ -305,13 +357,24 @@ confidence: high
 
 ## Overview
 
-**业务场景**：{描述}
+**业务场景**：{描述，仅写已证实内容}
 
 **参与产物**：{artifact-1} → {artifact-2} → {artifact-3}
 
 **触发条件**：{什么情况下触发}
 
 **成功标准**：{怎么算完成}
+
+## Boundary & Confidence
+
+### Confirmed Facts
+- {已证实参与该流程的角色、产物、触发方式}
+
+### Evidence-backed Inferences
+- {基于调用链、事件、数据流可推断的流程边界；说明限制}
+
+### To Verify
+- {仍不确定的流程分支、外部系统责任边界、隐式参与者}
 
 ## Flow Diagram
 
@@ -376,9 +439,20 @@ confidence: high
 
 **行业**：{行业}
 
-**核心业务**：{一句话}
+**核心业务**：{一句话，仅写已证实内容}
 
 **目标用户**：{用户}
+
+## Boundary & Confidence
+
+### Confirmed Facts
+- {项目已证实具备的能力}
+
+### Evidence-backed Inferences
+- {基于多处证据可推断的边界判断；说明依据与限制}
+
+### To Verify
+- {仍待验证的项目定位、业务边界、系统归属问题}
 
 ## Scope Boundary
 
@@ -408,9 +482,9 @@ confidence: high
 
 ## Related Systems
 
-| System | Relation | Protocol | Purpose |
-|--------|----------|----------|---------|
-| {系统} | {关系} | {协议} | {目的} |
+| System | Relation | Protocol | Purpose | Boundary Note |
+|--------|----------|----------|---------|---------------|
+| {系统} | {关系} | {协议} | {目的} | {本系统是拥有能力、消费能力，还是仅对接该系统} |
 ```
 
 ### 2.5 atlas/keyword.md 模板
@@ -837,13 +911,13 @@ ORDER BY cnt DESC;
 | 外键一致性 | 无孤儿记录 | {结果} | {✅/❌} | {备注} |
 | 时间连续性 | 无断档 | {结果} | {✅/❌} | {备注} |
 
-## 业务规则推断
+## 证据支持的推断
 
 ### 从表结构推断的约束
 
-| 规则 | 推断依据 | 业务含义 |
-|------|----------|----------|
-| `{规则名}` | `{字段}+非空约束` | {业务含义} |
+| 规则 | 推断依据 | 业务含义 | 使用限制 |
+|------|----------|----------|----------|
+| `{规则名}` | `{字段}+非空约束` | {业务含义} | {仅凭表结构无法证明项目边界/系统归属} |
 
 ### 状态字段说明（如果有）
 
@@ -852,6 +926,11 @@ ORDER BY cnt DESC;
 | 0 | INIT | 1, 2 | 初始化 |
 | 1 | CREATED | 2 | 创建完成 |
 | 2 | COMPLETED | - | 处理完成 |
+
+## 待验证事项
+
+- {仅由命名、注释、局部字段映射得出的猜测}
+- {需要结合调用链、主流程、业务文档进一步确认的边界判断}
 
 ## 证据锚点
 
@@ -881,6 +960,7 @@ relation_count: 0
 # 表关系矩阵
 
 > 本文档汇总所有表之间的关系，提供全局视图。
+> 关系存在 ≠ 已证明这是系统自有业务域；如果只有映射或同步痕迹，必须显式保守表述。
 > 单表详情请查看 [tables/](tables/) 目录。
 
 ## 关系总览
@@ -1017,7 +1097,12 @@ table_count: 0
 
 ### {entity-name}
 
-**一句话定义**: {业务实体的核心定义}
+**一句话定义**: {业务实体的核心定义，仅写已证实内容}
+
+**边界提示**:
+- Confirmed Fact: {可由表、字段、查询模式直接支持的实体结论}
+- Inference: {基于多表共现、关联查询可推断的实体边界；说明限制}
+- To Verify: {仍不确定是否应拆成独立实体、或只是外部系统镜像}
 
 **物理分布**: 该实体的数据分散在以下物理表
 
@@ -1277,6 +1362,9 @@ GROUP BY DATE(create_time)
 
 ### Good：高信息密度，包含深度业务规则
 
+> 前提说明：下面这个示例只适用于你**已经**从状态机、主流程、核心表、关键调用链等多个锚点确认“它就是系统自有核心产物”的场景。
+> 如果仓库里只有外部接口、DTO、回调、字段映射、适配层命名，**不要**照抄这种产品化写法，而应改用后面的“对接/适配型示例”。
+
 ```markdown
 ---
 type: artifact
@@ -1344,7 +1432,7 @@ stateDiagram-v2
 ### Implicit Dependencies
 
 1. **order.trackingNo 由承运商异步回调写入**
-   - 假设：查询接口假设 trackingNo 非空（SHIPPED 后）
+   - 读取方默认前提：查询接口默认 trackingNo 在 SHIPPED 后非空
    - 违反场景：承运商回调延迟，客户已看到 SHIPPED 但 trackingNo 为空
    - 后果：客户端 NPE（历史事故 #2342）
    - 当前处理：查询接口做空值兜底，显示 "物流信息同步中"
@@ -1420,6 +1508,60 @@ OrderController.create()
 - **状态机校验**: `OrderService#validateStatusTransition(Long, OrderStatus)` — 校验状态转换合法性，违反时抛 BizException
 ```
 
+### Good：只有对接/适配能力时，写法要克制
+
+```markdown
+---
+type: artifact
+name: external-fulfillment-sync
+title: 外部履约同步适配
+coverage: partial
+last_verified: 2024-03-14
+confidence: medium
+---
+
+# 外部履约同步适配
+
+## Why Exists
+
+**一句话定义**：将本系统主单状态和外部履约平台接口进行映射与同步的适配能力。
+
+**业务目标**：在主流程推进时，把内部状态变更透传给外部系统，并接收外部回执更新本地字段。
+
+**失败影响**：状态同步延迟、回执缺失、运营侧需要人工补单。
+
+**无影响范围**：不直接证明本系统拥有完整履约域建模能力；当前证据只支持“存在外部履约对接链路”。
+
+## Boundary & Confidence
+
+### Confirmed Facts
+- 存在 `FulfillmentClient#pushStatus()` 调用外部接口。
+- 存在 `FulfillmentCallbackController#callback()` 接收外部回执并更新本地同步字段。
+- 本地表仅保存同步结果、外部单号、重试状态等对接字段。
+
+### Evidence-backed Inferences
+- 同步链路很可能服务于主单流转，而不是独立履约子系统；依据是调用入口来自主单服务，且未发现完整履约状态机或核心履约实体。
+
+### To Verify
+- 外部平台是否承载独立仓配业务闭环。
+- 本仓库是否还存在未扫描到的履约核心模块、主表、状态枚举。
+
+## Deep Business Rules ★
+
+### Cross-Module Constraints
+1. 主单终态推进依赖同步任务的重试结果，但同步本身是异步的。
+
+### Implicit Dependencies
+1. `sync_result_code` 由回调写入，而查询接口默认“最近一次同步结果可用”。
+
+## Evidence Anchors
+
+- `FulfillmentClient#pushStatus(SyncCommand)` — 对外发送同步请求
+- `FulfillmentCallbackController#callback(FulfillmentCallbackDTO)` — 接收外部回执
+- `OrderSyncService#syncFulfillmentStatus(Long)` — 从主单流程触发同步
+- `t_order_sync_log` — 记录同步请求、回执、重试状态
+```
+
 ---
 
 ## 5. 质量检查清单
@@ -1429,6 +1571,8 @@ OrderController.create()
 ### 基础完整性
 - [ ] 包含 Frontmatter，所有字段已填
 - [ ] 包含 Why Exists 章节
+- [ ] `Why Exists` 只写已证实内容，没有把弱证据包装成系统定位
+- [ ] 包含 `Boundary & Confidence`，并区分 Confirmed Facts / Evidence-backed Inferences / To Verify
 - [ ] 包含 Lifecycle 章节（Stages 表格 + Data Flow 表格）
 - [ ] 包含 Trace 章节（调用链 + 事务边界）
 - [ ] 包含 Failure & Degradation 章节
@@ -1446,3 +1590,5 @@ OrderController.create()
 - [ ] 没有纯状态列表而无转换规则
 - [ ] 没有纯流程步骤而无输入输出
 - [ ] 每个表格都有明确的业务含义
+- [ ] 没有仅凭接口名、DTO、注释、外部术语就下业务边界结论
+- [ ] 所有仍不确定的边界判断都已放入 `To Verify`

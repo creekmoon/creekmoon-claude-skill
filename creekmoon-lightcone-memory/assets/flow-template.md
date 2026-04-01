@@ -11,13 +11,24 @@ confidence: low
 
 ## Overview
 
-**业务场景**：{描述}
+**业务场景**：{描述，仅写已证实内容}
 
 **参与产物**：{artifact-1} → {artifact-2} → {artifact-3}
 
 **触发条件**：{什么情况下触发}
 
 **成功标准**：{怎么算完成}
+
+## Boundary & Confidence
+
+### Confirmed Facts
+- {已证实参与该流程的角色、产物、触发方式}
+
+### Evidence-backed Inferences
+- {基于调用链、事件、数据流可推断的流程边界；说明限制}
+
+### To Verify
+- {仍不确定的流程分支、外部系统责任边界、隐式参与者}
 
 ## Flow Diagram
 

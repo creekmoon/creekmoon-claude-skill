@@ -11,7 +11,18 @@ confidence: low
 
 ## 一句话描述
 
-{项目核心业务}
+{项目核心业务，仅写已证实内容}
+
+## 边界提示
+
+### Confirmed Facts
+- {项目已证实的核心能力}
+
+### Evidence-backed Inferences
+- {对项目边界的推断；说明依据与限制}
+
+### To Verify
+- {仍待验证的系统定位、外部系统归属、业务闭环判断}
 
 ## 核心产物（Artifacts）
 
