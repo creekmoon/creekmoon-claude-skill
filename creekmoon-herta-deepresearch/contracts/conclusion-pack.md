@@ -1,4 +1,4 @@
-# Conclusion Pack Contract
+﻿# Conclusion Pack Contract
 
 `conclusion-pack` 是主 agent 归并研究结果后的唯一正式综合产物，也是最终报告的叙事底稿和图示规划底稿。
 
