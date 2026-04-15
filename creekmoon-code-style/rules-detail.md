@@ -303,6 +303,56 @@ if (StringUtils.isNotBlank(trackingNumber)) {
 
 如果 `logistics` 可能为 null 且属于异常分支，应把校验前移为 fast-fail 或兜底。
 
+### 补充：主线赋值先落主分支，边界告警下沉为局部小 if
+
+当一个 if 块的目的是"按条件决定是否执行主要动作"时，需要先判断"主要动作的正向结果是什么"，然后直接让主要动作在主分支平铺完成，再用一个局部小 `if` 处理边界值或异常情况。
+
+可以省略 else 的信号：当 `if (正常值) { 主要赋值 } else { 只是告警/跳过 }` 时，可以把"主要赋值"前移到 if 块主线，"告警/跳过"改成一个判断异常值的小 if——这样 else 就自然消失。这个改法读者的阅读顺序从"先看分支结构"变成"先看主要赋值、再看边界处理"。
+
+反面示例（主要赋值被 if/else 绑架，读者必须先读分支结构才能看到主要逻辑）：
+
+```java
+/* 附加费用控制：默认不启用 */
+config.setExtraFee(null);
+config.setExtraFeeType("standard");
+if (Boolean.TRUE.equals(param.getNeedExtraFee())) {
+    BigDecimal totalFee = FeeUtils.calcTotalFee(param.getItemList());
+    if (totalFee.compareTo(BigDecimal.ZERO) > 0) {
+        /* 主要赋值在 if 分支里 */
+        config.setExtraFee(totalFee.setScale(2, RoundingMode.HALF_UP).toPlainString());
+    } else {
+        /* 次要操作在 else 里，读者必须读完整个结构才能分清主次 */
+        log.warn("[OrderService] needExtraFee=true 但附加费合计为0，不传 extraFee");
+    }
+    config.setExtraFeeType("custom");
+}
+```
+
+问题：`setExtraFee` 这个主要赋值只有走进 `if (> 0)` 才发生，`else` 里只是打一条告警。结果读者必须先读完整个 if/else 结构，才能判断主流程到底发生了什么。
+
+正面示例（主要赋值先落主线，边界情况用局部小 if 处理）：
+
+```java
+/* 附加费用控制：默认不启用 */
+config.setExtraFee(null);
+config.setExtraFeeType("standard");
+if (Boolean.TRUE.equals(param.getNeedExtraFee())) {
+    BigDecimal totalFee = FeeUtils.calcTotalFee(param.getItemList());
+    /* 主要动作先完成：赋值、设置类型标志 */
+    config.setExtraFee(totalFee.setScale(2, RoundingMode.HALF_UP).toPlainString());
+    config.setExtraFeeType("custom");
+    /* 边界情况局部处理：值为 0 是次要信息，不阻断主流程 */
+    if (totalFee.compareTo(BigDecimal.ZERO) <= 0) {
+        log.warn("[OrderService] needExtraFee=true 但附加费合计为0");
+    }
+    log.info("[OrderService] 已启用附加费（custom），extraFee={}", config.getExtraFee());
+}
+```
+
+为什么更好：读者从上到下一眼看到"主要赋值在前、告警在后"，不需要在 if/else 结构里来回跳读，阅读顺序与业务预期一致。
+
+适用边界：当两条分支的语义真正对等（例如成功路径和失败路径各有独立处理逻辑）时，保留 if/else 是合理的。当 else 分支不贡献任何主要业务结果——不改变主对象状态、不产生主流程所需数据，只做告警日志、指标埋点、空跳过、降级标记等次要操作——才考虑省略 else，把主动作提前平铺。
+
 ---
 
 ## R6. 可选的后续逻辑：回调组合 vs 显式命名
