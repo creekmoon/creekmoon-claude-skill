@@ -29,15 +29,25 @@
 | `creekmoon-lightcone-readme` | 生成或重构根目录 README，业务链路优先，让新人快速建立项目心智模型               | 新项目 README、重构 README、补充业务流程说明 |
 | `creekmoon-apidoc-spec` | 标准化接口文档规范，统一概述、版本、环境、请求/响应、示例结构                     | 对外接口文档、开放平台文档、资源接口说明 |
 
-## 快速安装（Windows）
+## 快速安装
 
-在命令行中运行以下命令，会启动交互式安装程序，引导你选择安装位置和要安装的 skill：
+运行以下一键命令，会启动交互式安装程序，引导你选择安装位置和要安装的 skill。
+
+### Windows（CMD / PowerShell）
 
 ```cmd
 curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpdateSkill.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
 > 需要系统已安装 `curl`（Windows 10 1803+ 内置）。
+
+### macOS / Linux（bash / zsh）
+
+```bash
+curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpdateSkill.sh -o /tmp/install.sh && bash /tmp/install.sh && rm -f /tmp/install.sh
+```
+
+> 需要系统已安装 `curl` 和 `git`（macOS 自带；Linux 按需 `brew/apt/yum install git curl`）。
 
 ## 使用方式
 
