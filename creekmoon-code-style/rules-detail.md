@@ -695,3 +695,98 @@ if ("image/png".equals(mimeType)) {
 - 禁止在业务代码中用手写字节魔数做逻辑判断
 - 有成熟工具库能完成的工作，必须优先使用
 - 微优化的前提是"有可观测的性能瓶颈"，否则视为过早优化
+
+---
+
+## R12. 方法 Javadoc 注释规范
+
+每个方法（含 private 方法）必须有 Javadoc 注释块（`/** ... */`）。
+
+### 方法描述行
+
+- 一句话命中业务意图或限定条件，说清楚"做了什么 / 对谁生效 / 在什么条件下"
+- 禁止照抄方法名，照抄等于没写
+- 如有重要限定（如"仅统计某状态"、"幂等"、"调用方需保证非空"），应在描述行中体现
+
+### @param 注释
+
+**基本类型 / String / 枚举：**
+- 一句话正常描述参数含义即可，无需说明来源
+
+**对象类型（含 DTO / BO / Entity / List\<T\> 等）：**
+- 必须同时说明两点：① 对象的状态特征（是否已初始化、是否已查库、需要哪些字段非空）② 通常如何获得（调用什么方法、由谁构建）
+- 格式：`<状态描述>，通过 <获取方式> 获取/构建`
+- 禁止只写对象名词（如 `@param order 订单`）
+
+常见获取方式写法参考：
+
+| 场景 | @param 注释示例 |
+|---|---|
+| 单表查询 | `已查库的完整订单实体，通过 orderService.getById(orderId) 获取` |
+| 前端入参 DTO | `由前端请求参数直接映射，Controller 层透传` |
+| 调用方自行组装的 BO | `查询条件，由调用方从请求参数组装，需已设置日期范围` |
+| 内部 build 方法构建 | `上下文对象，由 buildAllocationContext() 构建` |
+| 批量查询结果 | `属于同一订单的明细列表，通过 itemMapper.listByOrderId() 查得` |
+
+### @return 注释
+
+- 返回含义与方法名完全一致时可省略（如 `getUserById` 返回"指定 ID 的用户"无须额外说明）
+- 以下情况**必须**写 @return：
+  - 返回 boolean：说清 true/false 各代表什么
+  - 返回 Map：说清 key 和 value 分别代表什么
+  - 返回可能为 null 的对象：说明何时返回 null
+  - 方法名无法完整表达返回内容时
+
+### 代码示例
+
+**正面示例（Service 公共方法）：**
+
+```java
+/**
+ * 按仓库统计各承运商可派运量，仅计入状态为"待派"的订单
+ *
+ * @param warehouseId 仓库 ID
+ * @param queryBO     查询条件，由前端入参组装（需已设置日期范围），通过 StockQueryBO.from(request) 构建
+ * @return 按承运商编码分组的可派运量，key 为承运商编码，value 为件数；无数据时返回空 Map
+ */
+Map<String, Integer> calcDispatchableQty(Long warehouseId, StockQueryBO queryBO);
+```
+
+**正面示例（private 方法 + boolean 返回）：**
+
+```java
+/**
+ * 校验备货单是否满足提交条件（状态为草稿 + 明细行不为空）
+ *
+ * @param plan 已查库的完整备货单实体，通过 replenishPlanMapper.selectById() 获取
+ * @return true 表示可提交，false 表示不满足条件
+ */
+private boolean isReadyToSubmit(TReplenishPlan plan) { ... }
+```
+
+**正面示例（入参为前端 DTO）：**
+
+```java
+/**
+ * 创建调拨单草稿，幂等；重复提交同一 referenceNo 时直接返回已有单据 ID
+ *
+ * @param reqDTO  调拨单创建请求，由 Controller 层从前端入参直接映射，referenceNo 字段必填
+ * @param creator 操作人 ID
+ * @return 调拨单 ID
+ */
+Long createTransferDraft(TransferCreateReqDTO reqDTO, Long creator);
+```
+
+**反面示例（照抄方法名 + 参数无意义注释）：**
+
+```java
+/**
+ * 获取可用数量
+ *
+ * @param warehouseId 仓库id
+ * @param queryBO     查询对象
+ * @return 结果
+ */
+```
+
+问题：① 描述行照抄方法语义；② `queryBO` 是对象类型但未说明状态特征和来源；③ `@return` 写"结果"等于没写。

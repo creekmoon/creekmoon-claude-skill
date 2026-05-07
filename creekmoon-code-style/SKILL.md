@@ -1,7 +1,7 @@
 ---
 name: creekmoon-code-style
-version: 1.0.3
-description: creekmoon的JAVA代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于需要判断方法中的主次流程、Happy Path、常规路径与测试旁路/兼容分支先后关系的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves distinguishing the main business path from test bypasses, compatibility branches, fallback flows, or other special cases.
+version: 1.0.4
+description: creekmoon的JAVA代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界、方法注释）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于需要判断方法中的主次流程、Happy Path、常规路径与测试旁路/兼容分支先后关系的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves distinguishing the main business path from test bypasses, compatibility branches, fallback flows, or other special cases.
 ---
 
 # Creekmoon Code Style
@@ -229,11 +229,46 @@ public void bindTrackingNo(Long orderId, String trackingNo, String platformName)
 - 有成熟工具库能完成的工作（如 Apache Tika 检测文件类型），必须优先使用
 - 无可观测性能瓶颈支撑的"优化"，视为过早优化
 
+### R12. 方法 Javadoc 注释规范
+
+每个方法（含 private）必须有 Javadoc 注释。
+
+**方法描述行：** 一句话说清楚业务意图或限定条件，禁止照抄方法名（如 `getOrder` 注释写"获取订单"是废话，应写"查询指定订单的完整信息，含明细"）。
+
+**@param：** 每个参数一句话说用途；基本类型正常描述即可；**对象类型必须说明对象的状态特征 + 通常如何获得**（如 `已查库的完整订单实体，通过 orderService.getById() 获取`）。
+
+**@return：** 含义不直观时必须写；boolean 需说清 true/false 各代表什么；与方法名完全一致时可省略。
+
+正面示例：
+
+```java
+/**
+ * 按仓库统计各承运商可派运量，仅计入状态为"待派"的订单
+ *
+ * @param warehouseId 仓库 ID
+ * @param queryBO     查询条件，由前端入参组装（需已设置日期范围），通过 StockQueryBO.from(request) 构建
+ * @return 按承运商编码分组的可派运量，key 为承运商编码
+ */
+Map<String, Integer> calcDispatchableQty(Long warehouseId, StockQueryBO queryBO);
+```
+
+反面示例：
+
+```java
+/**
+ * 获取可用数量
+ *
+ * @param warehouseId 仓库id
+ * @param queryBO     查询对象
+ * @return 结果
+ */
+```
+
 ---
 
 ## 场景 A：编写代码（核心场景，默认激活）
 
-为用户编写或修改代码时，自动遵循全部 11 条规则，无需用户提示。
+为用户编写或修改代码时，自动遵循全部 12 条规则，无需用户提示。
 
 **执行要项：**
 
@@ -247,6 +282,7 @@ public void bindTrackingNo(Long orderId, String trackingNo, String platformName)
 8. tryXxx 方法按 R8 约定实现
 9. 可选后续逻辑按 R6 选择回调或改名策略
 10. 纯 CPU 转换按 R7 使用 Stream 并顶部写步骤注释
+11. 每个方法按 R12 添加 Javadoc；对象类型入参必须说明状态特征和获取方式
 
 ## 场景 B：代码审查（按需触发）
 
@@ -261,7 +297,7 @@ public void bindTrackingNo(Long orderId, String trackingNo, String platformName)
 
 **依据类型（四选一，必填）：**
 
-- **Style Rule**：明确对应 R1–R11 中的某条规则，**必须写规则号**
+- **Style Rule**：明确对应 R1–R12 中的某条规则，**必须写规则号**
 - **Project Convention**：项目内部约定/历史一致性，**必须写约定来源**（如"同文件既有常量风格"）
 - **Correctness**：正确性/Bug 风险，**必须描述风险与触发条件**
 - **Preference**：可读性偏好，**不得带规则号，不得强制修改**
