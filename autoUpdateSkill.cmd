@@ -81,19 +81,13 @@ if "%SKCOUNT%"=="0" (
 for /l %%i in (1,1,%SKCOUNT%) do (
     set "RV%%i=N/A"
     set "LV%%i=---"
-    set "DESC%%i="
     call :FETCH_REMOTE_VER %%i
     call :FETCH_LOCAL_VER %%i
 )
 
-set "_CON_W=120"
-for /f "tokens=2 delims=:" %%w in ('mode con ^| findstr /i "Columns"') do set /a "_CON_W=%%w"
-set /a "_DWIDTH=!_CON_W! - 73"
-if !_DWIDTH! lss 10 set "_DWIDTH=10"
-
 echo.
-echo  #    Skill Name                       Remote       Installed    Status     Description
-echo  ---- -------------------------------- ------------ ------------ ---------- ----------
+echo  #    Skill Name                               Remote       Installed    Status
+echo  ---- ---------------------------------------- ------------ ------------ --------
 for /l %%i in (1,1,%SKCOUNT%) do (
     set "ST=[new   ]"
     if "!LV%%i!"=="!RV%%i!"  set "ST=[ok    ]"
@@ -101,14 +95,12 @@ for /l %%i in (1,1,%SKCOUNT%) do (
         if not "!LV%%i!"=="!RV%%i!"  set "ST=[update]"
     )
     set "_N=!SK%%i!                                        "
-    set "_N=!_N:~0,32!"
+    set "_N=!_N:~0,40!"
     set "_R=!RV%%i!            "
     set "_R=!_R:~0,12!"
     set "_L=!LV%%i!            "
     set "_L=!_L:~0,12!"
-    set "_D=!DESC%%i!                                                                                                        "
-    call :TRUNC_VAR _D !_DWIDTH!
-    echo  [%%i]  !_N! !_R! !_L! !ST!  !_D!
+    echo  [%%i]  !_N! !_R! !_L! !ST!
 )
 
 echo.
@@ -274,15 +266,11 @@ for /l %%i in (1,1,%SKCOUNT%) do (
 goto :EOF
 
 :FETCH_REMOTE_VER
-:: Fetch remote SKILL.md and extract version+description into RV%1 / DESC%1
+:: Fetch remote SKILL.md and extract version into RV%1
 :: Uses %TMPF% as temp file (safe path, no delayed expansion needed)
 curl -s --max-time 10 "%RAW%/!SK%~1!/SKILL.md" -o "%TMPF%" 2>nul
 if exist "%TMPF%" (
     for /f "tokens=2 delims=: " %%v in ('findstr /b /i "version:" "%TMPF%" 2^>nul') do set "RV%~1=%%v"
-    set "_DLINE="
-    for /f "tokens=1* delims=:" %%a in ('findstr /b /i "description:" "%TMPF%" 2^>nul') do set "_DLINE=%%b"
-    if defined _DLINE set "_DLINE=!_DLINE:~1!"
-    set "DESC%~1=!_DLINE!"
     del "%TMPF%" 2>nul
 )
 goto :EOF
@@ -297,12 +285,4 @@ for %%s in (!SK%~1!) do (
         del "%TMPF%" 2>nul
     )
 )
-goto :EOF
-
-:TRUNC_VAR
-:: Variable-length substring truncation via call double-expansion.
-:: %~1 = variable name, %~2 = max character length
-:: Cannot use !var:~0,!len!! inside a FOR loop (%%_ is misread as loop var _).
-:: Calling this subroutine puts us outside FOR context so %% → literal %.
-call set "%~1=%%%~1:~0,%~2%%"
 goto :EOF
