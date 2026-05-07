@@ -266,8 +266,18 @@ for /l %%i in (1,1,%SKCOUNT%) do (
 goto :EOF
 
 :FETCH_REMOTE_VER
-:: Fetch remote SKILL.md and extract version into RV%1
-:: Uses %TMPF% as temp file (safe path, no delayed expansion needed)
+:: When repo already cloned, read version from local clone — avoids redundant HTTP per skill
+if "!REPO_READY!"=="Y" (
+    for %%s in (!SK%~1!) do (
+        if exist "!REPO!\%%s\SKILL.md" (
+            copy /y "!REPO!\%%s\SKILL.md" "%TMPF%" >nul 2>nul
+            for /f "tokens=2 delims=: " %%v in ('findstr /b /i "version:" "%TMPF%" 2^>nul') do set "RV%~1=%%v"
+            del "%TMPF%" 2>nul
+        )
+    )
+    goto :EOF
+)
+:: Fallback: HTTP fetch (used when git clone was unavailable)
 curl -s --max-time 10 "%RAW%/!SK%~1!/SKILL.md" -o "%TMPF%" 2>nul
 if exist "%TMPF%" (
     for /f "tokens=2 delims=: " %%v in ('findstr /b /i "version:" "%TMPF%" 2^>nul') do set "RV%~1=%%v"

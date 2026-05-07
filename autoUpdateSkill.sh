@@ -151,7 +151,14 @@ extract_version() {
 }
 
 fetch_remote_ver() {
-    local idx=$1 name="${SKILLS[$1]}" tmp
+    local idx=$1 name="${SKILLS[$1]}"
+    # When repo already cloned, read version from local clone — avoids redundant HTTP per skill
+    if [ "$REPO_READY" = "Y" ] && [ -n "$REPO" ] && [ -f "$REPO/$name/SKILL.md" ]; then
+        REMOTE_VERS[$idx]=$(extract_version "$REPO/$name/SKILL.md")
+        return
+    fi
+    # Fallback: HTTP fetch (used when git clone was unavailable)
+    local tmp
     tmp="$(mktemp -t csk.XXXXXX)"
     if curl -s --max-time 10 "$RAW/$name/SKILL.md" -o "$tmp" 2>/dev/null; then
         REMOTE_VERS[$idx]=$(extract_version "$tmp")
