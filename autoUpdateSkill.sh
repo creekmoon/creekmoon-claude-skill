@@ -15,6 +15,7 @@ TDIR=""
 SKILLS=()
 REMOTE_VERS=()
 LOCAL_VERS=()
+SKILL_DESCS=()
 
 # Colors (best-effort)
 if [ -t 1 ]; then
@@ -150,11 +151,21 @@ extract_version() {
     echo "$v"
 }
 
+extract_desc() {
+    # $1 = path to SKILL.md; returns full description line, no truncation
+    [ -f "$1" ] || { echo ""; return; }
+    local d
+    d=$(grep -i '^description:' "$1" 2>/dev/null | head -n1 \
+        | sed -E 's/^[Dd]escription:[[:space:]]*//' | tr -d '\r')
+    echo "$d"
+}
+
 fetch_remote_ver() {
     local idx=$1 name="${SKILLS[$1]}" tmp
     tmp="$(mktemp -t csk.XXXXXX)"
     if curl -s --max-time 10 "$RAW/$name/SKILL.md" -o "$tmp" 2>/dev/null; then
         REMOTE_VERS[$idx]=$(extract_version "$tmp")
+        SKILL_DESCS[$idx]=$(extract_desc "$tmp")
     fi
     rm -f "$tmp"
 }
@@ -190,9 +201,14 @@ step2_list() {
         fetch_local_ver "$i"
     done
 
+    local term_w desc_w
+    term_w=$(tput cols 2>/dev/null || echo "${COLUMNS:-120}")
+    desc_w=$((term_w - 73))
+    [ "$desc_w" -lt 10 ] && desc_w=10
+
     echo
-    printf " %-4s %-40s %-12s %-12s %s\n" "#" "Skill Name" "Remote" "Installed" "Status"
-    echo " ---- ---------------------------------------- ------------ ------------ --------"
+    printf " %-4s %-32s %-10s %-10s %-10s %s\n" "#" "Skill Name" "Remote" "Installed" "Status" "Description"
+    echo " ---- -------------------------------- ---------- ---------- ---------- ----------"
     for i in "${!SKILLS[@]}"; do
         local st="[new   ]"
         if [ "${LOCAL_VERS[$i]}" != "---" ]; then
@@ -202,8 +218,10 @@ step2_list() {
                 st="[update]"
             fi
         fi
-        printf " [%-2d] %-40s %-12s %-12s %s\n" \
-            "$((i+1))" "${SKILLS[$i]}" "${REMOTE_VERS[$i]}" "${LOCAL_VERS[$i]}" "$st"
+        local desc="${SKILL_DESCS[$i]:-}"
+        desc="${desc:0:$desc_w}"
+        printf " [%-2d] %-32s %-10s %-10s %-10s %s\n" \
+            "$((i+1))" "${SKILLS[$i]}" "${REMOTE_VERS[$i]}" "${LOCAL_VERS[$i]}" "$st" "$desc"
     done
 
     echo
