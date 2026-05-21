@@ -698,15 +698,33 @@ if ("image/png".equals(mimeType)) {
 
 ---
 
-## R12. 方法 Javadoc 注释规范
+## R12. 方法中文 Javadoc 注释规范
 
-每个方法（含 private 方法）必须有 Javadoc 注释块（`/** ... */`）。
+每个方法都必须有中文 Javadoc 注释块（`/** ... */`），无论是 `public`、`protected`、包可见方法还是 `private` 方法。注释的目标是让读者快速建立业务理解，不是复述代码细节。
 
-### 方法描述行
+### 普通方法注释
 
-- 一句话命中业务意图或限定条件，说清楚"做了什么 / 对谁生效 / 在什么条件下"
-- 禁止照抄方法名，照抄等于没写
-- 如有重要限定（如"仅统计某状态"、"幂等"、"调用方需保证非空"），应在描述行中体现
+普通方法默认使用 2 行主体说明：
+
+1. 第一行说明方法意义，通常可以理解为方法名的精准中文化表达
+2. 第二行简单说明核心逻辑、关键数据来源或主要处理方式
+
+要求：
+- 保持精准，描述要命中业务要害
+- 避免为了显得完整而写长段说明，增加阅读心智负担
+- 允许方法名的中文翻译，但必须具体到业务对象、业务意图或限定条件
+- 禁止泛泛写"处理数据"、"执行操作"、"获取信息"这类无业务信息的描述
+
+### 复杂核心业务注释
+
+涉及状态流转、权限/范围过滤、批量分配、库存占用、销售预测、外部系统交互、分布式锁、MQ、文件导入导出等核心复杂逻辑时，可以写详细注释。
+
+详细注释应说明：
+- 这段逻辑解决什么业务问题
+- 关键分支为什么存在
+- 主要执行步骤是什么
+
+推荐使用 `<p>` 分隔概述和步骤，用编号列表描述主流程。不要把每行代码翻译成注释，仍然只解释业务逻辑和关键约束。
 
 ### @param 注释
 
@@ -739,11 +757,48 @@ if ("image/png".equals(mimeType)) {
 
 ### 代码示例
 
-**正面示例（Service 公共方法）：**
+**正面示例（普通方法，2 行主体说明）：**
+
+```java
+/**
+ * 初始化订单格式检查器
+ * 将所有 OrderFormatChecker 实现类加载到 Map 中，以 checkerName 作为 key
+ */
+@PostConstruct
+public void initOrderFormatCheckers() {
+    Map<String, OrderFormatChecker> beansOfType = context.getBeansOfType(OrderFormatChecker.class);
+    checkerName2Checker = beansOfType
+            .values()
+            .stream()
+            .filter(bean -> !Proxy.isProxyClass(bean.getClass()))
+            .collect(Collectors.toMap(OrderFormatChecker::checkerName, bean -> bean));
+}
+```
+
+**正面示例（复杂核心业务，展开说明步骤）：**
+
+```java
+/**
+ * 获取符合询价条件的承运商列表
+ * <p>
+ * 该方法会执行以下逻辑：
+ * 1. 初始化查询条件并填充当前用户的数据权限
+ * 2. 根据当前登录用户的公司性质（内部/外部）动态设置承运商的询价范围过滤条件
+ * 3. 仅查询状态为启用的承运商
+ * 4. 过滤掉公司配置的询价排除承运商
+ *
+ * @param queryBO 询价承运商查询条件，由前端请求参数映射并在方法内补充数据权限
+ * @return 符合询价条件的承运商列表
+ */
+List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
+```
+
+**正面示例（Service 公共方法，带参数和返回值）：**
 
 ```java
 /**
  * 按仓库统计各承运商可派运量，仅计入状态为"待派"的订单
+ * 查询订单明细并按承运商编码聚合可派运件数
  *
  * @param warehouseId 仓库 ID
  * @param queryBO     查询条件，由前端入参组装（需已设置日期范围），通过 StockQueryBO.from(request) 构建
@@ -757,6 +812,7 @@ Map<String, Integer> calcDispatchableQty(Long warehouseId, StockQueryBO queryBO)
 ```java
 /**
  * 校验备货单是否满足提交条件（状态为草稿 + 明细行不为空）
+ * 读取备货单状态和明细数量，返回是否允许进入提交流程
  *
  * @param plan 已查库的完整备货单实体，通过 replenishPlanMapper.selectById() 获取
  * @return true 表示可提交，false 表示不满足条件
@@ -769,6 +825,7 @@ private boolean isReadyToSubmit(TReplenishPlan plan) { ... }
 ```java
 /**
  * 创建调拨单草稿，幂等；重复提交同一 referenceNo 时直接返回已有单据 ID
+ * 先按 referenceNo 查询已有草稿，不存在时再创建主单和明细
  *
  * @param reqDTO  调拨单创建请求，由 Controller 层从前端入参直接映射，referenceNo 字段必填
  * @param creator 操作人 ID
@@ -777,11 +834,12 @@ private boolean isReadyToSubmit(TReplenishPlan plan) { ... }
 Long createTransferDraft(TransferCreateReqDTO reqDTO, Long creator);
 ```
 
-**反面示例（照抄方法名 + 参数无意义注释）：**
+**反面示例（描述空泛 + 参数无意义注释）：**
 
 ```java
 /**
- * 获取可用数量
+ * 获取信息
+ * 处理查询逻辑
  *
  * @param warehouseId 仓库id
  * @param queryBO     查询对象
@@ -789,4 +847,4 @@ Long createTransferDraft(TransferCreateReqDTO reqDTO, Long creator);
  */
 ```
 
-问题：① 描述行照抄方法语义；② `queryBO` 是对象类型但未说明状态特征和来源；③ `@return` 写"结果"等于没写。
+问题：① 主体说明没有命中业务对象和业务要害；② `queryBO` 是对象类型但未说明状态特征和来源；③ `@return` 写"结果"等于没写。
