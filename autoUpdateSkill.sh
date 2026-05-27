@@ -16,6 +16,12 @@ SKILLS=()
 REMOTE_VERS=()
 LOCAL_VERS=()
 
+# Alias map: when a skill directory is renamed, add a parallel entry here.
+# ALIAS_NEW[i] = current directory name in the repo
+# ALIAS_OLD[i] = old directory name to clean up after installing the new one
+ALIAS_NEW=("creekmoon-trailblazer-readme")
+ALIAS_OLD=("creekmoon-lightcone-readme")
+
 # Colors (best-effort)
 if [ -t 1 ]; then
     C_RESET=$'\033[0m'; C_BOLD=$'\033[1m'; C_DIM=$'\033[2m'
@@ -172,6 +178,18 @@ fetch_local_ver() {
     if [ -f "$f" ]; then
         LOCAL_VERS[$idx]=$(extract_version "$f")
     fi
+    # Alias fallback: if skill was renamed, report old version so it shows as [update] not [new]
+    if [ "${LOCAL_VERS[$idx]}" = "---" ]; then
+        local j
+        for j in "${!ALIAS_NEW[@]}"; do
+            if [ "${ALIAS_NEW[$j]}" = "$name" ]; then
+                local old_f="$TDIR/${ALIAS_OLD[$j]}/SKILL.md"
+                if [ -f "$old_f" ]; then
+                    LOCAL_VERS[$idx]=$(extract_version "$old_f")
+                fi
+            fi
+        done
+    fi
 }
 
 # ================================================================
@@ -256,6 +274,20 @@ step2_pick() {
 # ================================================================
 # STEP 3 - install
 # ================================================================
+remove_alias() {
+    # $1 = new skill name just installed; remove old alias dir if present
+    local name="$1" j
+    for j in "${!ALIAS_NEW[@]}"; do
+        if [ "${ALIAS_NEW[$j]}" = "$name" ]; then
+            local old_dir="$TDIR/${ALIAS_OLD[$j]}"
+            if [ -d "$old_dir" ]; then
+                rm -rf "$old_dir"
+                echo "         [MIGRATED] Removed old directory: ${ALIAS_OLD[$j]}"
+            fi
+        fi
+    done
+}
+
 install_from_repo() {
     mkdir -p "$TDIR"
     local i
@@ -274,6 +306,7 @@ install_from_repo() {
                 cp -R "$src"/. "$dst"/
             fi
             echo "         [OK]   $name"
+            remove_alias "$name"
         else
             echo "         [SKIP] $name  (source incomplete, skipped)"
         fi
@@ -293,6 +326,7 @@ install_from_http() {
             # file-level sync: keep only SKILL.md
             find "$dst" -mindepth 1 ! -name 'SKILL.md' -exec rm -rf {} + 2>/dev/null || true
             echo "         [OK]   $name"
+            remove_alias "$name"
         else
             echo "         [FAIL] $name"
         fi

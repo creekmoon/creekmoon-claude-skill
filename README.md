@@ -26,7 +26,7 @@
 | `creekmoon-herta-deepresearch` | 面向复杂业务场景做高强度深度研究，交叉整合代码逻辑、静态结构、配置规则与业务关系，输出证据化结论 | 复杂链路梳理、系统行为追因、业务与技术口径对齐、疑难场景深挖 |
 | `creekmoon-weekly-report` | 从 Git 提交中提炼开发活动，生成结构化《项目周报-开发维度》                    | 周报、阶段汇报、研发活动归纳       |
 | `creekmoon-cerydra-codex` | 从现有代码中提炼开发规则，生成可复用规则文件（xxx_rule.md）                  | 整理模块规范、抽取通用规则、沉淀团队约定 |
-| `creekmoon-lightcone-readme` | 生成或重构根目录 README，业务链路优先，让新人快速建立项目心智模型               | 新项目 README、重构 README、补充业务流程说明 |
+| `creekmoon-trailblazer-readme` | 生成或重构根目录 README，业务链路优先，让新人快速建立项目心智模型               | 新项目 README、重构 README、补充业务流程说明 |
 | `creekmoon-apidoc-spec` | 标准化接口文档规范，统一概述、版本、环境、请求/响应、示例结构                     | 对外接口文档、开放平台文档、资源接口说明 |
 
 ## 快速安装

@@ -16,6 +16,15 @@ set "REPO_READY=N"
 set "REPO="
 set "API_URL=https://gitee.com/api/v5/repos/creekmoon/creekmoon-claude-skill/contents"
 
+:: ----------------------------------------------------------------
+:: Alias map: when a skill directory is renamed, add a pair here.
+:: ALIAS_OLD_n  = the old directory name (to be cleaned up)
+:: ALIAS_NEW_n  = the new directory name (the one in the repo now)
+:: ----------------------------------------------------------------
+set "ALIAS_COUNT=1"
+set "ALIAS_OLD_1=creekmoon-lightcone-readme"
+set "ALIAS_NEW_1=creekmoon-trailblazer-readme"
+
 :: ================================================================
 :: STEP 0 - Connectivity
 :: ================================================================
@@ -193,6 +202,7 @@ for /l %%i in (1,1,%SKCOUNT%) do (
             for /d %%d in (*) do rd /s /q "%%d" 2>nul
             popd
             echo          [OK]   !SK%%i!
+            call :REMOVE_ALIAS "!SK%%i!"
         ) else (
             echo          [FAIL] !SK%%i!
         )
@@ -257,8 +267,21 @@ for /l %%i in (1,1,%SKCOUNT%) do (
         if exist "!_SRC!\SKILL.md" (
             robocopy "!_SRC!" "!_DST!" /MIR /NFL /NDL /NJH /NJS >nul 2>nul
             echo          [OK]   !SK%%i!
+            call :REMOVE_ALIAS "!SK%%i!"
         ) else (
             echo          [SKIP] !SK%%i!  (source incomplete, skipped)
+        )
+    )
+)
+goto :EOF
+
+:REMOVE_ALIAS
+:: %~1 = new skill name just installed; remove old alias dir if present
+for /l %%a in (1,1,%ALIAS_COUNT%) do (
+    if /i "%~1"=="!ALIAS_NEW_%%a!" (
+        if exist "%TDIR%\!ALIAS_OLD_%%a!" (
+            rd /s /q "%TDIR%\!ALIAS_OLD_%%a!" 2>nul
+            echo          [MIGRATED] Removed old directory: !ALIAS_OLD_%%a!
         )
     )
 )
@@ -292,6 +315,20 @@ for %%s in (!SK%~1!) do (
         copy /y "%TDIR%\%%s\SKILL.md" "%TMPF%" >nul 2>nul
         for /f "tokens=2 delims=: " %%v in ('findstr /b /i "version:" "%TMPF%" 2^>nul') do set "LV%~1=%%v"
         del "%TMPF%" 2>nul
+    )
+)
+:: Alias fallback: if skill was renamed, show old version so it appears as [update] not [new]
+if "!LV%~1!"=="---" (
+    for %%s in (!SK%~1!) do (
+        for /l %%a in (1,1,%ALIAS_COUNT%) do (
+            if /i "%%s"=="!ALIAS_NEW_%%a!" (
+                if exist "%TDIR%\!ALIAS_OLD_%%a!\SKILL.md" (
+                    copy /y "%TDIR%\!ALIAS_OLD_%%a!\SKILL.md" "%TMPF%" >nul 2>nul
+                    for /f "tokens=2 delims=: " %%v in ('findstr /b /i "version:" "%TMPF%" 2^>nul') do set "LV%~1=%%v"
+                    del "%TMPF%" 2>nul
+                )
+            )
+        )
     )
 )
 goto :EOF

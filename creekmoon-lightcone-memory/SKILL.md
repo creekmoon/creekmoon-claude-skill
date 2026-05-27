@@ -1,6 +1,6 @@
 ---
 name: creekmoon-lightcone-memory
-version: 1.2.0
+version: 1.3.0
 description: 深度业务图谱型项目记忆系统。以高信息密度文档为核心，强制深挖跨模块业务逻辑、隐含依赖和业务不变量。Use when writing code, modifying code, debugging, reviewing code, refactoring, adding features, fixing bugs, understanding codebase, answering code questions, or when user mentions "分析项目", "建立记忆", "更新记忆", "了解项目", "接手项目", "深挖业务". If .light-cone/ exists, ALWAYS start from `00-index.md`.
 ---
 
@@ -357,6 +357,12 @@ Entry: Controller.method()
 - 关键方法：`{ClassName}#{method}({ParamTypes})` — {一句话描述核心逻辑/副作用}
 - 状态枚举：`{EnumName}` @ `{file}`
 - 数据库表：`{table_name}`
+
+##     Markdown 链接）
+
+- **Flows**: [{flow-name}](business/flows/{flow-name}.md)
+- **Related Artifacts**: [{other-artifact}](business/artifacts/{other-artifact}.md)
+- **Schema**: [{table_name}](../../schema/tables/{table_name}.md)
 ```
 
 写作约束：
@@ -364,6 +370,7 @@ Entry: Controller.method()
 - `Why Exists`、`00-index.md`、`business/context.md` 中的项目定位，只能使用 `Confirmed Facts` 已支持的结论。
 - `Evidence-backed Inferences` 可以保留高信息量判断，但必须显式写出依据和限制，不能伪装成系统自我定位。
 - `To Verify` 不是失败区，而是防止记忆文档把“线索”误写成“事实”的缓冲区。
+- **所有跨文档引用路径必须使用 Markdown 链接语法 `[文字](路径.md)`，禁止裸路径**——裸路径不可点击，使记忆文档丧失快速跳转的导航能力（详见文档规范 Section 5）。
 
 ---
 
@@ -421,6 +428,34 @@ confidence: high | medium | low
 | 产物文档分散 | 合并为单文件 | `artifact-X.md` + `lifecycle.md` + `trace-Y.md` → `business/artifacts/X.md` |
 | 中间索引文件 | 删除收拢 | 将中间索引层的功能收拢到 `00-index.md` |
 | 模块文件过多 | 单文件聚合 | 多个 `module-X.md` → 单个 `code/modules.md` |
+
+### 5. 跨文档链接规范（强制）
+
+`.light-cone/` 内文档间的所有路径引用**必须使用 Markdown 原生超链接语法**，禁止只写裸路径。裸路径在渲染后不可点击，读者无法快速跳转，记忆文档的导航价值会大打折扣。
+
+**格式**：`[链接文字](相对路径.md)` 或 `[链接文字](相对路径.md#section-anchor)`
+
+| 正确 ✅ | 错误 ❌ |
+|--------|--------|
+| `[order](business/artifacts/order.md)` | `business/artifacts/order.md` |
+| `[症状排查](atlas/symptom.md)` | `→ 查看 atlas/symptom.md` |
+| `[pay-flow](../flows/pay-flow.md)` | `business/flows/pay-flow.md` |
+
+**路径相对于当前文档位置计算：**
+
+| 当前文档 | 引用目标 | 写法示例 |
+|---------|---------|---------|
+| `.light-cone/00-index.md` | artifact | `[order](business/artifacts/order.md)` |
+| `.light-cone/atlas/symbol.md` | artifact | `[order](../business/artifacts/order.md)` |
+| `.light-cone/business/flows/pay.md` | artifact | `[order](../artifacts/order.md)` |
+| `.light-cone/schema/tables/orders.md` | artifact | `[order](../../business/artifacts/order.md)` |
+
+**必须使用链接的场景（不得遗漏）：**
+- `00-index.md` 核心产物表、核心流程表、快速导航区——每一个文件引用都要是可点击链接
+- `atlas/` 所有倒排索引（keyword / symbol / symptom）的 Target 列
+- 产物、流程文档末尾的 `Related Artifacts` / `Related Flows` 区域
+- 任何 "→ 查看 xxx"、"→ 跳转 xxx"、"→ 见 xxx" 的导航指引
+- `schema/overview.md` 核心表清单的 Schema 文档列
 
 ---
 
