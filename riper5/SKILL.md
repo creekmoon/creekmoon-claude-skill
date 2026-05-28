@@ -1,5 +1,6 @@
 ---
 name: riper5
+version: 1.0.0
 description: 仅在用户明确指示"执行riper5"意图时执行该技能. 
 ---
 ## RIPER-5
