@@ -1,6 +1,8 @@
 ﻿# Conclusion Pack Contract
 
-`conclusion-pack` 是主 agent 归并研究结果后的唯一正式综合产物，也是最终报告的叙事底稿和图示规划底稿。
+`conclusion-pack` 是主 agent 归并研究结果后的唯一正式综合产物，也是进入报告整形前的稳定归并底稿。
+
+其中的 `Unconfirmed` 只服务准出审查和后续补证，不属于最终报告底稿。
 
 ## 强约束
 
@@ -95,7 +97,8 @@
 - `Visual Plan` 至少保留 `1` 条，总数通常不超过 `3`
 - `Decisive Rules` 只保留 `3-5` 条
 - `Exceptions` 只保留真正会改写主线的例外
-- `Risks` 与 `Unconfirmed` 只保留真正会影响报告判断的内容
+- `Risks` 只保留真正会影响报告判断且已被证实的内容
+- `Unconfirmed` 只保留真正会影响报告准出的缺口，供审查与排除使用，不给 writer 直接展开成正文
 
 ## 禁止项
 
@@ -103,6 +106,7 @@
 - 不要把局部补丁冒充成全局规则
 - 不要把所有发现都塞进 `Decisive Rules`
 - 不要把 `conclusion-pack` 写成最终报告
+- 不要把 `Unconfirmed` 直接搬进 `shaping-pack` 或 `final-report`
 - 不要遗漏限制条件和证据锚点
 - 不要把图示规划写成“好看就行”的装饰说明
 

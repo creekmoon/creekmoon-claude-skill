@@ -1,12 +1,13 @@
 # Writer Dual
 
-负责把同一份 `conclusion-pack` 写成双层交付：先业务视角，再技术视角。
+负责把同一份 `shaping-pack` 写成双层交付：先业务视角，再技术视角。
 
 使用前先读取：
 - `contracts/report-contract.md`
 - `templates/dual-report.md`
 - `references/style-guide.md`
 - `references/anti-patterns.md`
+- `45-report-shaping/shaping-pack.md`
 
 ## 使用条件
 
@@ -44,7 +45,7 @@
 ## 写法要求
 
 - 两层必须共享同一结论底稿
-- 优先按 `conclusion-pack` 里的 `Reader Hook`、`Scene Object`、`Narrative Spine`、`Visual Plan` 展开
+- 优先按 `shaping-pack` 里的 `Opening Frame`、`Business Panorama`、`Flow Spine`、`Lifecycle Spine`、`Module Handoff`、`Why This Shape` 展开
 - 业务层回答表现、取舍、后果
 - 技术层回答机制、边界、默认 / 回退、危险改动点
 - 两层互相映照，但不要机械重复
@@ -54,12 +55,12 @@
 ## 正文推进方式
 
 按这个顺序推进：
-1. 先按 `Reader Hook` 写统一结论，不要写成两层内容的总摘要，必须是散文骨架（先判断，再要点，再风险提示）
-2. 再按 `Visual Plan` 给出统一的总览图，让两类读者共享同一幅全景
-3. 再按 `Scene Object` 写对象入场，说明为什么它是两层共同的主角
-4. 再按 `Narrative Spine` 展开业务视角：系统对外表现成什么，为什么值得关注，每节先写散文骨架
-5. 再按 `Narrative Spine` 展开技术视角：系统内部为什么会这样，边界和风险在哪里，每节先写散文骨架
-6. 一节只回答一个核心问题；共同的风险、未确认项与证据尾部只写一次
+1. 先按 `Opening Frame` 写统一结论，不要写成两层内容的总摘要，必须是散文骨架（先判断，再要点，再阅读提醒）
+2. 再按 `Business Panorama` 给出统一的总览图，让两类读者共享同一幅全景
+3. 再按 `Flow Spine` 分别展开业务视角和技术视角：业务层解释表现与后果，技术层解释机制与边界
+4. 需要时按 `Lifecycle Spine` 展开关键阶段变化，不要硬造生命周期
+5. 需要时按 `Module Handoff` 展开职责分工与交接，不要把它写成代码调用链
+6. 再按 `Why This Shape` 收束两层共同的组织原因；共同的例外、阅读提醒与证据尾部只写一次
 
 如果业务层和技术层都在重复同一段判断，而没有新增视角，说明双视图失败。
 
@@ -88,7 +89,7 @@
 - 双视图不是双倍篇幅，而是双层理解
 - 业务层先给方向感，技术层再给可信的机制解释
 - 两层可以使用不同语言，但不能得出不同结论
-- 共同风险和未确认项只写一次，不要在两层里各自重复
+- 未确认不进入双视图正文；研究边界只写覆盖范围与影响
 - 如果某条信息只服务一类读者，就不要硬塞给另一层
 
 ## 禁止项
@@ -100,6 +101,7 @@
 - 不要保留只为模板完整存在的空壳小节
 - 不要在统一结论（第一屏）里出现类名、方法名、表名、接口路径
 - 不要把任何层的任何节写成纯列表，必须有散文骨架
+- 不要把 `未确认` / `待验证` / `Open Questions` 改名后塞进任何一层正文
 
 ## 一句话原则
 

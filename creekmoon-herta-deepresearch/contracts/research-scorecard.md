@@ -47,6 +47,7 @@
 | `shaping_flow_spine_exists` | 检查 `shaping-pack.md` 是否存在 `Flow Spine` 节，含省略说明 | `= yes` |
 | `shaping_module_handoff_exists` | 检查 `shaping-pack.md` 是否存在 `Module Handoff` 节 | `= yes` |
 | `shaping_why_exists` | 检查 `shaping-pack.md` 是否存在 `Why This Shape` 节 | `= yes` |
+| `shaping_report_boundary_exists` | 检查 `shaping-pack.md` 是否存在 `Report Boundary` 节，且同时说明未覆盖范围与对主判断的影响 | `= yes` |
 | `shaping_trace_map_exists` | 检查 `shaping-pack.md` 是否存在 `Trace Map` 表，含至少 2 行数据 | `= yes` |
 
 ## 最终报告量化指标
@@ -61,6 +62,7 @@
 | `why_section_exists` | 检查 `final-report.md` 是否存在 `为什么系统会这样组织` 或同义节 | `= yes` |
 | `flow_diagram_omission_note` | 检查流程图/时序图图后是否有省略说明 | `= yes` |
 | `technical_term_in_first_screen` | 检查第一屏是否出现类名/方法名/枚举值/接口路径（反向指标） | `= no` |
+| `report_has_no_unconfirmed_section` | 检查 `final-report.md` 不存在 `未确认` / `待验证` / `To Verify` / `Open Questions` 栏目或同义表达 | `= yes` |
 | `trace_rows_total` | 统计 `final-report.md` 中 `证据回溯表` 的数据行数 | `>= 4` |
 | `trace_rows_with_anchor` | 统计 `证据回溯表` 中锚点不为空的数据行数 | `= trace_rows_total` |
 
