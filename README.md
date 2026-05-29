@@ -21,6 +21,7 @@
 | `creekmoon-prd-spec` | PRD 写作规范，强调大白话、图表优先、面向业务沟通                          | 写需求文档、方案说明、业务评审材料    |
 | `creekmoon-trd-spec` | TRD 写作规范，聚焦架构、模块、接口契约，不展开代码细节                       | 写技术方案、接口边界、模块设计      |
 | `creekmoon-code-style` | 代码风格规范，统一方法设计、入参组织、命名和流程表达                          | 写代码、重构、补实现           |
+| `riper5` | 严格执行协议，约束 AI 先研究后实施，避免未授权直接改代码                          | 用户明确要求“执行 riper5”、需要高约束协作 |
 | `creekmoon-fuxuan-testcase` | 测试用例设计规范，覆盖冒烟测试、分支测试与接口测试模式，强调数据驱动与可维护性         | 编写测试用例、评审覆盖率、设计冒烟测试集 |
 | `creekmoon-lightcone-memory` | 项目记忆系统，用高信息密度文档沉淀业务图谱和关键代码上下文                       | 接手项目、分析项目、建立长期记忆     |
 | `creekmoon-herta-deepresearch` | 面向复杂业务场景做高强度深度研究，交叉整合代码逻辑、静态结构、配置规则与业务关系，输出证据化结论 | 复杂链路梳理、系统行为追因、业务与技术口径对齐、疑难场景深挖 |
@@ -32,6 +33,8 @@
 ## 快速安装
 
 运行以下一键命令，会启动交互式安装程序，引导你选择安装位置和要安装的 skill。
+
+安装器会自动发现仓库顶层所有包含 `SKILL.md` 的 skill 目录，因此新增 skill（包括 `riper5`）无需单独修改安装脚本。
 
 ### Windows（CMD / PowerShell）
 
@@ -52,7 +55,7 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 ## 使用方式
 
 1. 把目标目录下的 `SKILL.md` 配置到 Claude 或 Cursor 的 skill 能力中。
-2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档。
+2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档；如果要启用 `riper5`，请明确说明“执行 riper5”。
 3. 如果是代码相关任务，通常建议组合使用：
 
 - 先用 `creekmoon-lightcone-memory` 建立项目上下文
