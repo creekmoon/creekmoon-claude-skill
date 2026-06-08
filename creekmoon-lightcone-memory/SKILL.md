@@ -1,7 +1,7 @@
 ---
 name: creekmoon-lightcone-memory
-version: 1.3.0
-description: 深度业务图谱型项目记忆系统。以高信息密度文档为核心，强制深挖跨模块业务逻辑、隐含依赖和业务不变量。Use when writing code, modifying code, debugging, reviewing code, refactoring, adding features, fixing bugs, understanding codebase, answering code questions, or when user mentions "分析项目", "建立记忆", "更新记忆", "了解项目", "接手项目", "深挖业务". If .light-cone/ exists, ALWAYS start from `00-index.md`.
+version: 1.3.1
+description: 项目业务图谱记忆系统——深挖跨模块业务逻辑、隐含依赖和业务不变量，以高信息密度文档建立可复用的项目记忆。Make sure to use this skill in ANY of these situations：(1) 当前项目存在 .light-cone/ 目录时必须触发，任何代码任务开始前先读 00-index.md；(2) 用户问"这个项目/模块/功能是干什么的"、"帮我梳理业务逻辑"、"这个类/方法/字段是做什么用的"、"为什么这里要这么设计"；(3) 用户刚接手项目、onboarding 或首次进入陌生模块；(4) 修改/新增功能前需要理解影响范围和跨模块依赖；(5) 用户提到"分析项目"、"建立记忆"、"更新记忆"、"了解项目"、"接手项目"、"深挖业务"、"项目文档"、"项目记忆"；(6) 故障排查或 code review 需要业务上下文时。If .light-cone/ exists, ALWAYS start from `00-index.md`.
 ---
 
 # LightCone 业务图谱记忆系统
