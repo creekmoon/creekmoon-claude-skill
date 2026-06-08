@@ -1,6 +1,6 @@
 ---
 name: creekmoon-code-style
-version: 1.0.6
+version: 1.0.7
 description: creekmoon的JAVA代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界、中文方法注释）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于需要判断方法中的主次流程、Happy Path、常规路径与测试旁路/兼容分支先后关系的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves distinguishing the main business path from test bypasses, compatibility branches, fallback flows, or other special cases.
 ---
 
@@ -288,11 +288,42 @@ List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
  */
 ```
 
+### R13. 防御性编程不得侵入业务判断条件
+
+分支判断条件（谓词）只表达**业务意图**。一旦把"数据是否存在 / 是否为空"这类防御性检查混进判断条件，就会悄悄改变分支路由——本该进入该分支的数据被"漏"到别的分支，等于用防御代码改写了业务逻辑。这是比可读性更严重的正确性问题。
+
+- 判断条件只回答"这是不是某类业务"，不回答"数据齐不齐"
+- 存在性检查若确实需要，放在**不改变路由**的位置（分支内部局部处理，或入口 fast-fail），绝不放进决定走哪条分支的条件里
+- 若空值 / null 的输出能被下游兜住（不崩溃、不影响主流程），分支内部连存在性守卫都应省略，让空值自然流过
+- 防御只在"缺失会导致错误且无法兜底"时出现；能兜住的缺失不值得为它增加分支或守卫
+- 例外：当"字段为空"本身就代表不同业务场景（空 = 不该进此分支）时，把它写进条件是业务规则，不是防御——这种情况允许
+- 反面信号: 业务路由本是 `linkTypes.contains(item.getType())`，被加料成 `&& StringUtils.hasText(item.getLinkTitle())` —— 标题为空的合法链接数据被错误路由到 else
+
+反面（防御性检查侵入判断条件，且分支内多余守卫）：
+
+```java
+} else if (linkTypes.contains(item.getType()) && StringUtils.hasText(item.getLinkTitle())) {
+    result.setContent(item.getContent() + "\n链接标题:" + item.getLinkTitle());
+    if (StringUtils.hasText(item.getLinkDesc())) {
+        result.setContent(result.getContent() + "\n链接描述:" + item.getLinkDesc());
+    }
+}
+```
+
+正面（判断条件回归业务意图，可兜底的空值不再防御）：
+
+```java
+} else if (linkTypes.contains(item.getType())) {
+    result.setContent(item.getContent() + "\n链接标题:" + item.getLinkTitle());
+    result.setContent(result.getContent() + "\n链接描述:" + item.getLinkDesc());
+}
+```
+
 ---
 
 ## 场景 A：编写代码（核心场景，默认激活）
 
-为用户编写或修改代码时，自动遵循全部 12 条规则，无需用户提示。
+为用户编写或修改代码时，自动遵循全部 13 条规则，无需用户提示。
 
 **执行要项：**
 
@@ -307,6 +338,7 @@ List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
 9. 可选后续逻辑按 R6 选择回调或改名策略
 10. 纯 CPU 转换按 R7 使用 Stream 并顶部写步骤注释
 11. 每个方法按 R12 添加中文 Javadoc；普通方法默认 2 行（方法意义 + 核心逻辑），复杂核心业务可展开说明；对象类型入参必须说明状态特征和获取方式
+12. 分支判断条件按 R13 只表达业务意图，防御性检查不得侵入分支谓词；可被下游兜住的空值不再加守卫
 
 ## 场景 B：代码审查（按需触发）
 
@@ -321,7 +353,7 @@ List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
 
 **依据类型（四选一，必填）：**
 
-- **Style Rule**：明确对应 R1–R12 中的某条规则，**必须写规则号**
+- **Style Rule**：明确对应 R1–R13 中的某条规则，**必须写规则号**
 - **Project Convention**：项目内部约定/历史一致性，**必须写约定来源**（如"同文件既有常量风格"）
 - **Correctness**：正确性/Bug 风险，**必须描述风险与触发条件**
 - **Preference**：可读性偏好，**不得带规则号，不得强制修改**
