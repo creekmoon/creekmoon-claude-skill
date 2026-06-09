@@ -1,12 +1,12 @@
 ---
 name: creekmoon-code-style
-version: 1.0.7
-description: creekmoon的JAVA代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界、中文方法注释）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于需要判断方法中的主次流程、Happy Path、常规路径与测试旁路/兼容分支先后关系的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves distinguishing the main business path from test bypasses, compatibility branches, fallback flows, or other special cases.
+version: 1.0.9
+description: creekmoon的JAVA代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界、职责分离与层级边界、中文方法注释）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于判断方法主次流程、Happy Path、常规路径与测试旁路/兼容分支、以及命名不清导致职责耦合、层级越界、过度设计或阅读理解困难的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves method naming, responsibility separation, layer boundaries, hidden side effects, orchestration/execution coupling, or distinguishing the main business path from test bypasses, compatibility branches, fallback flows, and other special cases.
 ---
 
 # Creekmoon Code Style
 
-适用于JAVA语言和项目。规范方法设计与抽取粒度、入参风格、方法内部流程组织（主流程优先）、命名与副作用边界（Name == Behavior）。
+适用于JAVA语言和项目。规范方法设计与抽取粒度、入参风格、方法内部流程组织（主流程优先）、命名与副作用边界、职责分离与层级边界（Name == Behavior）。
 
 ## 核心规则
 
@@ -34,6 +34,12 @@ description: creekmoon的JAVA代码风格规范（方法设计、入参风格、
 - 判断标准: 如果省略该附带行为会让人困惑或违反预期，说明它是内生耦合的，不需要写进方法名
 
 - 反面信号: 方法名叫 `deleteUser` 但内部还发了通知（通知是独立业务行为）；方法名叫 `deleteOrg` 但内部级联删除了用户（级联删除是独立的关联操作）
+
+**强烈建议审查的职责分离边界（不默认强制）：**
+- 审查重点不是某个固定命名词，而是方法名、方法职责和所在层级是否共同表达了清晰边界；若命名让读者以为方法只做 A，实际却同时承担 B/C，导致决策、编排、执行、持久化、通知、注册、兜底等职责混在一起，应强烈建议调整
+- 典型信号：某个方法或特殊分支绕过同层已有机制；为了处理一个特例直接依赖具体实现；帮助方法名像"解析/选择/构建/校验/路由"，内部却完成后续执行动作；一个类因此同时知道"怎么选"和"怎么做"，阅读者必须跨层跳转才能理解完整生命周期
+- 首选修复是收缩职责：让方法只产出当前层级应该产出的结果（目标对象、决策结果、上下文、命令参数等），由更合适的外层或下游统一执行；如果业务上确实需要绑定执行，应改名并在注释中说明这是编排/调度方法，而不是伪装成单一职责
+- 这类问题的本质是命名不清引导出过度设计和职责耦合，默认归为"建议优化"或"强烈建议审查项"；只有同时隐藏业务副作用、破坏公共契约或引发正确性风险时，才升级为"必须修复"
 
 ### R4. Service 公共方法入参优先基本类型
 
@@ -331,14 +337,15 @@ List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
 2. 每个分区顶部使用块注释 `/* xxx */`，内容精准简洁
 3. 空行仅出现在分区之间，同分区内操作连续排列
 4. 方法名按 R3 完整描述行为，副作用和条件必须体现
-5. Service public 方法入参按 R4 优先基本类型
-6. 主流程按 R5 Happy Path First 组织
-7. 入参变量可直接复用赋默认值，不额外声明同义变量
-8. tryXxx 方法按 R8 约定实现
-9. 可选后续逻辑按 R6 选择回调或改名策略
-10. 纯 CPU 转换按 R7 使用 Stream 并顶部写步骤注释
-11. 每个方法按 R12 添加中文 Javadoc；普通方法默认 2 行（方法意义 + 核心逻辑），复杂核心业务可展开说明；对象类型入参必须说明状态特征和获取方式
-12. 分支判断条件按 R13 只表达业务意图，防御性检查不得侵入分支谓词；可被下游兜住的空值不再加守卫
+5. 按 R3 检查命名是否诱导职责耦合：决策/编排/执行/持久化/通知等职责能分离就不要揉进一个方法或特殊分支
+6. Service public 方法入参按 R4 优先基本类型
+7. 主流程按 R5 Happy Path First 组织
+8. 入参变量可直接复用赋默认值，不额外声明同义变量
+9. tryXxx 方法按 R8 约定实现
+10. 可选后续逻辑按 R6 选择回调或改名策略
+11. 纯 CPU 转换按 R7 使用 Stream 并顶部写步骤注释
+12. 每个方法按 R12 添加中文 Javadoc；普通方法默认 2 行（方法意义 + 核心逻辑），复杂核心业务可展开说明；对象类型入参必须说明状态特征和获取方式
+13. 分支判断条件按 R13 只表达业务意图，防御性检查不得侵入分支谓词；可被下游兜住的空值不再加守卫
 
 ## 场景 B：代码审查（按需触发）
 
@@ -385,8 +392,8 @@ List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
 ```
 
 严重程度：
-- **必须修复**：违反核心契约（R3 命名不符、R8 tryXxx 抛异常、R6 隐藏副作用），依据类型必须为 Style Rule 或 Correctness
-- **建议优化**：影响可读性和可维护性（R9 分区不清、R5 嵌套过深、R2 过度抽取），有规则可引用
+- **必须修复**：违反核心契约（R3 隐藏业务副作用/静默 return 未命名、R8 tryXxx 抛异常、R6 隐藏副作用），依据类型必须为 Style Rule 或 Correctness
+- **建议优化**：影响可读性和可维护性（R3 职责分离边界突破、R9 分区不清、R5 嵌套过深、R2 过度抽取），有规则可引用
 - **偏好建议**：无规则覆盖，属 Convention 或 Preference，**不得带规则号**，开发者自行决定是否修改
 
 ## 场景 C：重构建议（伴随编码触发）

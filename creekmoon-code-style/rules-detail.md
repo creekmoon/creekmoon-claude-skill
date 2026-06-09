@@ -1,6 +1,6 @@
 # Creekmoon Code Style — 完整规则与代码示例
 
-本文件包含全部 11 条规则的详细说明与正反面代码示例，供审查和深入判断时参考。
+本文件包含核心规则的详细说明与正反面代码示例，供审查和深入判断时参考。
 
 ---
 
@@ -114,6 +114,74 @@ public void deleteOrg(Long orgId) {
     userIds.forEach(userRepository::delete);
 }
 ```
+
+### 示例 3：命名不清引发职责耦合与层级越界（强烈建议审查项）
+
+有些方法名不只是描述动作，还会暗示它所在的职责层级。读者会通过方法名判断"这里是在决策、准备、校验、编排，还是执行"。如果方法名只表达单一职责，实际却同时承担多个层级职责，就会把本该分离的决策、编排、执行、持久化、通知、注册、兜底等逻辑耦合在一起，后续读者必须跳进方法体才能理解完整生命周期。
+
+这不是按单词机械判定。`route`、`resolve`、`select`、`choose`、`determine`、`build`、`prepare`、`check`、`init` 等词只是常见线索，中文命名或其他动词同样可能出现这个问题。真正的判断标准是：方法所在层级应该产出什么，实际是否越级完成了后续层级的动作；同类路径是否有一致的职责边界；特殊分支是否绕过了已有机制。
+
+这类问题的本质通常不是"名字短了"，而是命名不清让实现顺手把多层职责揉在一起，进而诱发过度设计或硬耦合。简单把方法改名为 `xxxAndHandle` 只能补齐 Name == Behavior，却不一定解决职责分离问题。
+
+反面示例（帮助方法越界执行，绕过外层统一机制）：
+
+```java
+public void handle(MessageCallback messageCallback) {
+    AikeMsgType msgType = AikeMsgType.fromCode(messageCallback.getMsgType());
+    if (AikeMsgType.LINK.equals(msgType)) {
+        routeAppMessage(messageCallback);
+        return;
+    }
+
+    AbstractMessageHandler handler = Optional.ofNullable(msgType)
+            .map(handlerMap::get)
+            .orElse(defaultMessageHandler);
+    handler.handle(messageCallback);
+}
+
+private void routeAppMessage(MessageCallback messageCallback) {
+    Integer contentType = parseContentType(messageCallback);
+    if (Integer.valueOf(2).equals(contentType)) {
+        miniProgramHandler.handle(messageCallback);
+        return;
+    }
+    linkHandler.handle(messageCallback);
+}
+```
+
+问题不只是"名字没写全"。如果简单改成 `routeAppMessageAndHandle`，虽然 Name == Behavior 变得更完整，但仍然保留了两条控制流：普通消息在外层统一执行，AppMessage 在帮助方法内部执行。更好的修复是让二段分类方法只返回目标 Handler，把执行点收束回外层。
+
+正面示例（职责收缩为决策，执行点统一）：
+
+```java
+public void handle(MessageCallback messageCallback) {
+    AikeMsgType msgType = AikeMsgType.fromCode(messageCallback.getMsgType());
+    AbstractMessageHandler handler;
+    if (AikeMsgType.LINK.equals(msgType)) {
+        handler = resolveAppMessageHandler(messageCallback);
+    } else {
+        handler = Optional.ofNullable(msgType)
+                .map(handlerMap::get)
+                .orElse(defaultMessageHandler);
+    }
+
+    handler.handle(messageCallback);
+}
+
+private AbstractMessageHandler resolveAppMessageHandler(MessageCallback messageCallback) {
+    Integer contentType = parseContentType(messageCallback);
+    if (Integer.valueOf(2).equals(contentType)) {
+        return miniProgramHandler;
+    }
+    return linkHandler;
+}
+```
+
+审查时的落点：
+- 优先看职责层级和同类路径，而不是单词本身；命名只是发现问题的线索
+- 识别方法当前层级应该产出的结果：目标对象、决策结果、上下文、命令参数、校验结论等
+- 优先建议"返回当前层级的结果，由外层或下游统一执行"，不要为了规则再新建一层复杂抽象
+- 默认归为"建议优化"或"强烈建议审查项"；只有同时隐藏业务副作用、破坏公共契约或引发正确性风险时，才升级为"必须修复"
 
 ---
 
