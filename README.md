@@ -11,6 +11,7 @@
 - 写代码时风格不稳定，方法拆分和命名忽左忽右
 - 接手老项目时只会读代码，不会沉淀可复用的项目记忆
 - 周报、接口文档这类重复性文档，每次都要重新组织格式
+- vibe coding 生成的页面“能用但不好用”，元素堆砌、信息层级混乱、数据指标无关联
 
 这个仓库把这些场景拆成独立 skill，按需接入即可。
 
@@ -29,6 +30,7 @@
 | `creekmoon-cerydra-codex` | 从现有代码中提炼开发规则，生成可复用规则文件（xxx_rule.md）                  | 整理模块规范、抽取通用规则、沉淀团队约定 |
 | `creekmoon-trailblazer-readme` | 生成或重构根目录 README，业务链路优先，让新人快速建立项目心智模型               | 新项目 README、重构 README、补充业务流程说明 |
 | `creekmoon-apidoc-spec` | 标准化接口文档规范，统一概述、版本、环境、请求/响应、示例结构                     | 对外接口文档、开放平台文档、资源接口说明 |
+| `creekmoon-aglaea-design` | 产品页面体验与信息架构评审，以资深产品经理 + UX 设计师视角输出诊断报告和改进方案，不承担代码实现 | 审查 vibe coding 页面、评估看板/控制台/详情页、页面重构评审、交接后续改造 |
 
 ## 快速安装
 
@@ -55,11 +57,13 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 ## 使用方式
 
 1. 把目标目录下的 `SKILL.md` 配置到 Claude 或 Cursor 的 skill 能力中。
-2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档；如果要启用 `riper5`，请明确说明“执行 riper5”。
+2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档、审查页面体验；如果要启用 `riper5`，请明确说明“执行 riper5”。
 3. 如果是代码相关任务，通常建议组合使用：
 
 - 先用 `creekmoon-lightcone-memory` 建立项目上下文
 - 再用 `creekmoon-code-style` 约束具体实现风格
+
+4. 如果是页面体验问题，建议先用 `creekmoon-aglaea-design` 产出评估报告（含信息架构、数据链路、认知负荷、可执行清单），再交给后续实现 skill 或开发按报告改造。
 
 ## 目录变化说明
 
@@ -83,7 +87,8 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 - 希望把“AI 怎么写”沉淀成可复用规则的人
 - 经常接手存量项目、需要快速建立上下文的人
 - 需要固定格式周报、接口文档、方案文档的项目团队
+- 用 AI 生成后台页面、看板、详情页，但希望先诊断“为什么不好用”再动手改的团队
 
 ## 当前状态
 
-持续迭代中。后续会继续围绕“文档规范化、代码风格统一、项目长期记忆”补充更多 skill。
+持续迭代中。后续会继续围绕“文档规范化、代码风格统一、项目长期记忆、页面体验评审”补充更多 skill。
