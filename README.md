@@ -12,6 +12,7 @@
 - 接手老项目时只会读代码，不会沉淀可复用的项目记忆
 - 周报、接口文档这类重复性文档，每次都要重新组织格式
 - vibe coding 生成的页面“能用但不好用”，元素堆砌、信息层级混乱、数据指标无关联
+- 长线编程任务多轮迭代后容易偏离产品方向，AI 不断抛选择题，决策负担回到人身上
 
 这个仓库把这些场景拆成独立 skill，按需接入即可。
 
@@ -31,6 +32,7 @@
 | `creekmoon-trailblazer-readme` | 生成或重构根目录 README，业务链路优先，让新人快速建立项目心智模型               | 新项目 README、重构 README、补充业务流程说明 |
 | `creekmoon-apidoc-spec` | 标准化接口文档规范，统一概述、版本、环境、请求/响应、示例结构                     | 对外接口文档、开放平台文档、资源接口说明 |
 | `creekmoon-aglaea-design` | 产品页面体验与信息架构评审，以资深产品经理 + UX 设计师视角输出诊断报告和改进方案，不承担代码实现 | 审查 vibe coding 页面、评估看板/控制台/详情页、页面重构评审、交接后续改造 |
+| `creekmoon-himeko-auto-decision` | 长线任务的自动决策引擎，按激进/均衡/保守模式扫描产品文档、量化漂移并全权裁决下一步，不抛问题给人 | 多轮迭代开发、指定决策模式、需要 AI 自主排优先级与控范围蔓延 |
 
 ## 快速安装
 
@@ -57,13 +59,18 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 ## 使用方式
 
 1. 把目标目录下的 `SKILL.md` 配置到 Claude 或 Cursor 的 skill 能力中。
-2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档、审查页面体验；如果要启用 `riper5`，请明确说明“执行 riper5”。
+2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档、审查页面体验；如果要启用 `riper5`，请明确说明“执行 riper5”；长线任务可指定“激进模式”“均衡模式”或“保守模式”启用 `creekmoon-himeko-auto-decision`。
 3. 如果是代码相关任务，通常建议组合使用：
 
 - 先用 `creekmoon-lightcone-memory` 建立项目上下文
 - 再用 `creekmoon-code-style` 约束具体实现风格
 
 4. 如果是页面体验问题，建议先用 `creekmoon-aglaea-design` 产出评估报告（含信息架构、数据链路、认知负荷、可执行清单），再交给后续实现 skill 或开发按报告改造。
+
+5. 如果是多轮迭代的编程任务，建议：
+
+- 在 README 或 `项目规划.md` / `ROADMAP.md` 中写明产品方向锚点（核心目标、红线、完成标准）
+- 启用 `creekmoon-himeko-auto-decision`，事先指定决策模式；AI 会按漂移分自主裁决优先级，每次输出决策摘要
 
 ## 目录变化说明
 
@@ -88,7 +95,8 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 - 经常接手存量项目、需要快速建立上下文的人
 - 需要固定格式周报、接口文档、方案文档的项目团队
 - 用 AI 生成后台页面、看板、详情页，但希望先诊断“为什么不好用”再动手改的团队
+- 长线 vibe coding 或 agent 协作中，希望 AI 围绕产品方向自主决策、减少反复确认的团队
 
 ## 当前状态
 
-持续迭代中。后续会继续围绕“文档规范化、代码风格统一、项目长期记忆、页面体验评审”补充更多 skill。
+持续迭代中。后续会继续围绕“文档规范化、代码风格统一、项目长期记忆、页面体验评审、长线任务自主决策”补充更多 skill。
