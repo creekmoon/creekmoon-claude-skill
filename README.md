@@ -22,7 +22,7 @@
 | 目录 | 作用                                                  | 典型场景                 |
 |------|-----------------------------------------------------|----------------------|
 | `creekmoon-prd-spec` | PRD 写作规范，强调大白话、图表优先、面向业务沟通                          | 写需求文档、方案说明、业务评审材料    |
-| `creekmoon-topaz-pm` | 战术 PRD 与交互方案技能，基于 JTBD、Persona、场景补全和交互模式，把一句话需求展开为可落地的功能 PRD | 写功能 PRD、设计登录/看板/引导模块、补充用户故事、原型或交互方案 |
+| `creekmoon-topaz-pm` | 产品经理（PM）角色技能，站在 PM 视角理解项目、判断功能取舍与优先级、给出可落地的改进与交互建议，必要时也能独立产出完整 PRD | 从 PM 角度评估项目方向、判断功能值不值得做、排优先级、设计/审视功能与交互 |
 | `creekmoon-trd-spec` | TRD 写作规范，聚焦架构、模块、接口契约，不展开代码细节                       | 写技术方案、接口边界、模块设计      |
 | `creekmoon-code-style` | 代码风格规范，统一方法设计、入参组织、命名和流程表达                          | 写代码、重构、补实现           |
 | `riper5` | 严格执行协议，约束 AI 先研究后实施，避免未授权直接改代码                          | 用户明确要求“执行 riper5”、需要高约束协作 |
@@ -62,7 +62,7 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 
 1. 把目标目录下的 `SKILL.md` 配置到 Claude 或 Cursor 的 skill 能力中。
 2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档、审查页面体验；如果要启用 `riper5`，请明确说明“执行 riper5”；长线任务可指定“激进模式”“均衡模式”或“保守模式”启用 `creekmoon-himeko-auto-decision`。
-3. 如果是从一句话需求展开完整功能方案，建议先用 `creekmoon-topaz-pm` 产出战术 PRD 与交互决策；若还需要统一业务向文档风格，再叠加 `creekmoon-prd-spec` 做格式约束。
+3. 如果想从产品经理视角把项目/需求想清楚（判断要不要做、先做什么、怎么改进），用 `creekmoon-topaz-pm`：它能独立给出 PM 判断、交互决策，必要时也直接产出完整 PRD。它与偏业务沟通文风的 `creekmoon-prd-spec` 面向不同场景，二者相互独立，按需各自选用。
 4. 如果是代码相关任务，通常建议组合使用：
 
 - 先用 `creekmoon-lightcone-memory` 建立项目上下文

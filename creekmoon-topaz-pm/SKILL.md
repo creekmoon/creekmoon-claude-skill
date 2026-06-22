@@ -1,14 +1,18 @@
 ---
 name: creekmoon-topaz-pm
 version: 1.0.0
-description: 产品经理战术 PRD 与交互方案技能。基于 JTBD、Persona、场景补全、交互模式和原型指导，把一句话需求展开为可落地的功能 PRD。适用于用户提出写 PRD、设计功能、规划登录/看板/引导等产品模块、补充用户故事、原型或交互方案的场景；不用于纯代码实现、项目排期或营销文案。
+description: 资深产品经理（PM）角色技能，站在 PM 视角协助理解、判断和改进项目：拆解真实需求（JTBD/Persona）、补全场景与边界、判断要不要做与先做什么（Build/Don't Build、RICE）、给出可落地的交互与改进建议。适用于用户想从产品经理角度评估项目方向、判断功能取舍与优先级、设计或审视功能与交互、把模糊需求想清楚的场景。本技能专注"想清楚、做判断、提改进"，需要时也能独立产出完整 PRD（用自带模板，不依赖其他技能）；不做纯代码实现、项目排期或营销文案。
 ---
 
-# Product Manager — Integrated Tactical PRD Skill
+# Product Manager — Product Improvement Partner
 
 **Philosophy:** We don't invent from scratch. We stand on giants — 7
-battle-tested open-source PM/UX skills compressed into one pipeline that
-outputs a complete, developer-ready tactical PRD from a one-line requirement.
+battle-tested open-source PM/UX skills compressed into one pipeline. The point is
+not to crank out a PRD; it's to act as a product manager who first understands the
+project, judges what's worth doing and in what order, then proposes concrete
+improvements. A PRD (or prototype) is an optional downstream artifact, produced
+only on request — and when it's needed, this skill produces it end to end on its
+own, with no dependency on any other skill.
 
 **Sources integrated:** FinStep PRD Writer, product-on-purpose deliver-prd,
 Dean Peters PRD Development + Feature Investment Advisor, neo-user-journey UX
@@ -54,15 +58,16 @@ Input: One-line requirement (e.g., "做一个用户登录模块")
                 │
                 ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Stage 4: PRD + Prototype Output (enforced template)           │
-│   → Full PRD per TEMPLATE.md                                  │
-│   → Page flow description OR single-file HTML prototype spec  │
-│   → Quality check: 4-role review                              │
-│   References: product-on-purpose 3-file + FinStep prototype   │
+│ Stage 4: Output - judgment first, PRD on request             │
+│   → PM call: real problem, go/no-go, priorities              │
+│   → Concrete improvements + interaction decisions            │
+│   → Full PRD / prototype only when user asks                 │
+│   → Quality check: 4-role review                             │
+│   References: PRD on demand via this skill's TEMPLATE.md     │
 └──────────────────────────────────────────────────────────────┘
                 │
                 ▼
-Output: Complete tactical PRD + UX decisions + prototype guide
+Output: PM findings - problem judgment + priorities + improvement actions (PRD/prototype only on request)
 
 You (strategic layer): Review Rationale + Open Questions, approve or adjust.
 ```
@@ -205,23 +210,30 @@ Automatically match 1-2 real products as design rationale:
 
 ---
 
-## Stage 4: PRD Output
+## Stage 4: Output — Findings First, PRD on Demand
 
-Use `references/TEMPLATE.md` as the enforced output structure. Every section
-must be filled. If a section truly doesn't apply, write "N/A — [reason]" rather
-than omitting it.
+The default deliverable of this skill is a PM judgment, not a document: state the
+real problem or opportunity, whether it's worth doing, what to do first, and
+concrete improvement recommendations. Lead with that.
 
-### Output Files
+Only produce a full PRD when the user explicitly asks for one. When they do, this
+skill produces the PRD end to end on its own, using `references/TEMPLATE.md` as the
+structure — no dependency on any other skill. By default, though, `TEMPLATE.md` is
+just an internal coverage checklist so nothing important is dropped, not a forced
+output shape.
 
-| File | Content |
-|------|---------|
-| `PRD.md` | Complete tactical PRD (per TEMPLATE.md) |
-| `prototype.html` | Single-file HTML prototype spec (optional, per user request) |
+### Deliverables
+
+| Trigger | Deliverable |
+|---------|-------------|
+| Default (any PM request) | PM findings: problem judgment + priorities + concrete improvement actions |
+| User explicitly asks for a PRD | Full PRD produced here, using `references/TEMPLATE.md` |
+| User explicitly asks for a prototype | Single-file HTML prototype spec (per `references/prototype-guide.md`) |
 
 ### Quality Checklist (4-Role Review)
 
-After generating the PRD, run this self-check automatically and append a
-**Quality Review** section:
+After producing your findings (or a PRD, if one was requested), run this
+self-check automatically and append a **Quality Review** section:
 
 **Tech Lead Lens** 🔧
 - [ ] Concurrency and race conditions addressed?
@@ -302,17 +314,20 @@ Load these during the pipeline:
 
 ## Mini-Patterns: Common Decisions
 
+### When user says "我们这个项目/模块该怎么改进"
+→ Stages 1-3 → Output PM findings: problem judgment + priorities + improvement actions
+
+### When user says "这个功能值不值得做 / 评估一下做不做"
+→ Build/Don't Build + RICE → Output investment recommendation (go/no-go + priority)
+
 ### When user says "做一个XX模块"
-→ Run full 4-stage pipeline → Output PRD.md
+→ Run full 4-stage pipeline → Output PM findings; produce a PRD only if they ask
 
 ### When user says "这个需求怎么设计交互"
-→ Stages 1-3 only → Output interaction decision brief (no full PRD)
+→ Stages 1-3 only → Output interaction decision brief (no PRD)
 
-### When user says "评估一下做不做这个功能"
-→ Build/Don't Build framework → Output investment recommendation
-
-### When user says "给这个PRD提意见"
+### When user says "给这个PRD/方案提意见"
 → Pushback checklist + heuristic audit → Output review with scored feedback
 
-### When user says "生成原型"
-→ Stage 4 prototype mode → Output HTML spec per prototype-guide.md
+### When user explicitly says "写成 PRD" / "生成原型"
+→ Stage 4 on demand → full PRD via references/TEMPLATE.md, or HTML spec per prototype-guide.md
