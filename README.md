@@ -7,6 +7,7 @@
 不同场景下，AI 很容易出现这些问题：
 
 - 写 PRD 太技术化，业务方看不懂
+- 一句话需求难以展开成完整功能方案，交互和边界要靠人反复补
 - 写 TRD 只罗列模块，没有真正讲清接口和边界
 - 写代码时风格不稳定，方法拆分和命名忽左忽右
 - 接手老项目时只会读代码，不会沉淀可复用的项目记忆
@@ -21,6 +22,7 @@
 | 目录 | 作用                                                  | 典型场景                 |
 |------|-----------------------------------------------------|----------------------|
 | `creekmoon-prd-spec` | PRD 写作规范，强调大白话、图表优先、面向业务沟通                          | 写需求文档、方案说明、业务评审材料    |
+| `creekmoon-topaz-pm` | 战术 PRD 与交互方案技能，基于 JTBD、Persona、场景补全和交互模式，把一句话需求展开为可落地的功能 PRD | 写功能 PRD、设计登录/看板/引导模块、补充用户故事、原型或交互方案 |
 | `creekmoon-trd-spec` | TRD 写作规范，聚焦架构、模块、接口契约，不展开代码细节                       | 写技术方案、接口边界、模块设计      |
 | `creekmoon-code-style` | 代码风格规范，统一方法设计、入参组织、命名和流程表达                          | 写代码、重构、补实现           |
 | `riper5` | 严格执行协议，约束 AI 先研究后实施，避免未授权直接改代码                          | 用户明确要求“执行 riper5”、需要高约束协作 |
@@ -60,14 +62,15 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 
 1. 把目标目录下的 `SKILL.md` 配置到 Claude 或 Cursor 的 skill 能力中。
 2. 在对应场景触发 skill，例如写 PRD、补 TRD、接手项目、生成周报、整理 API 文档、审查页面体验；如果要启用 `riper5`，请明确说明“执行 riper5”；长线任务可指定“激进模式”“均衡模式”或“保守模式”启用 `creekmoon-himeko-auto-decision`。
-3. 如果是代码相关任务，通常建议组合使用：
+3. 如果是从一句话需求展开完整功能方案，建议先用 `creekmoon-topaz-pm` 产出战术 PRD 与交互决策；若还需要统一业务向文档风格，再叠加 `creekmoon-prd-spec` 做格式约束。
+4. 如果是代码相关任务，通常建议组合使用：
 
 - 先用 `creekmoon-lightcone-memory` 建立项目上下文
 - 再用 `creekmoon-code-style` 约束具体实现风格
 
-4. 如果是页面体验问题，建议先用 `creekmoon-aglaea-design` 产出评估报告（含信息架构、数据链路、认知负荷、可执行清单），再交给后续实现 skill 或开发按报告改造。
+5. 如果是页面体验问题，建议先用 `creekmoon-aglaea-design` 产出评估报告（含信息架构、数据链路、认知负荷、可执行清单），再交给后续实现 skill 或开发按报告改造。
 
-5. 如果是多轮迭代的编程任务，建议：
+6. 如果是多轮迭代的编程任务，建议：
 
 - 在 README 或 `项目规划.md` / `ROADMAP.md` 中写明产品方向锚点（核心目标、红线、完成标准）
 - 启用 `creekmoon-himeko-auto-decision`，事先指定决策模式；AI 会按漂移分自主裁决优先级，每次输出决策摘要
@@ -91,6 +94,7 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 ## 适合谁用
 
 - 需要让 AI 稳定输出文档和代码的团队
+- 希望从一句话需求快速展开功能 PRD、交互方案和原型说明的产品/设计同学
 - 希望把“AI 怎么写”沉淀成可复用规则的人
 - 经常接手存量项目、需要快速建立上下文的人
 - 需要固定格式周报、接口文档、方案文档的项目团队
@@ -99,4 +103,4 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 
 ## 当前状态
 
-持续迭代中。后续会继续围绕“文档规范化、代码风格统一、项目长期记忆、页面体验评审、长线任务自主决策”补充更多 skill。
+持续迭代中。后续会继续围绕“文档规范化、战术 PRD 与交互方案、代码风格统一、项目长期记忆、页面体验评审、长线任务自主决策”补充更多 skill。

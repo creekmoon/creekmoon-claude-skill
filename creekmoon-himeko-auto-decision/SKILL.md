@@ -1,5 +1,6 @@
 ---
 name: creekmoon-himeko-auto-decision
+version: 1.1.0
 description: >
   长线编程任务的执行期决策引擎。给定产品方向后，AI 在多轮迭代中自主裁决
   "下一步怎么走"：先识别决策类型（方向/实现/风险/节奏），再用对应标尺分级判断，
