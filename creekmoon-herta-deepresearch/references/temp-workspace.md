@@ -26,8 +26,8 @@
     │   └── merge-brief.md
     ├── synthesis/
     │   └── conclusion-pack.md
-    ├── report-shaping/          ← 新增，固定必经
-    │   └── shaping-pack.md
+    ├── report-blueprint/        ← 固定必经，报告蓝图层
+    │   └── report-blueprint.md
     └── final/
         └── report-draft.md
 ```
@@ -83,22 +83,21 @@
 
 ### `synthesis/conclusion-pack.md`
 
-由 `synthesizer` 创建或更新，作为进入报告整形前的稳定研究底稿。
+由主 agent 创建或更新，作为进入报告层前的稳定研究底稿。
 
-### `report-shaping/shaping-pack.md`
+### `report-blueprint/report-blueprint.md`
 
-由 `business-architecture-shaper` 创建，是写 `final-report` 的唯一输入底稿。
+由 `report-composer`（撰稿官）创建，是写 `final-report` 的唯一输入底稿。
 
-职责：把研究结论重组为业务理解顺序，规划图示。不引入新事实，只做重排、归纳、图示规划、阅读引导。
+职责：先判定报告意图，再从用户问题推导出贴合本次诉求的目录，规划图示。不引入新事实，只做意图判定、重排、归纳、图示规划、阅读引导。
 
-至少包含：
-- `Opening Frame`：这件事是什么、第一屏三句话
-- `Business Panorama`：一张图看整体业务形态
-- `Flow Spine`：数据和业务如何流动、哪些阶段省略
-- `Lifecycle Spine`：核心业务对象的关键生命周期阶段
-- `Module Handoff`：模块如何承接、加工、输出（职责与对接层）
-- `Why This Shape`：为什么系统被组织成今天这样
-- `Light Anchor Notes`：正文哪些位置需要点到即止的技术注记
+至少包含（详见 `contracts/report-blueprint.md`）：
+- `Intent Read`：这次报告是什么范式、用户最想拿到什么
+- `Ask Map`：用户每个显式问题 + 直接答案 + 在哪节回答
+- `Derived Outline`：从本次问题推导的目录（不是套固定模板）
+- `First Screen`：第一屏底稿，直接命中用户最核心问题
+- `Section Briefs`：各节核心判断与要点
+- `Visual Plan`：按需的图示计划（可为空）
 - `Trace Map`：每个正文主判断回到哪些 `conclusion-pack` 条目
 
 ### `final/report-draft.md`
