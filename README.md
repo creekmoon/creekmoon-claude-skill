@@ -33,7 +33,7 @@
 | `creekmoon-cerydra-codex` | 从现有代码中提炼开发规则，生成可复用规则文件（xxx_rule.md）                  | 整理模块规范、抽取通用规则、沉淀团队约定 |
 | `creekmoon-trailblazer-readme` | 生成或重构根目录 README，业务链路优先，让新人快速建立项目心智模型               | 新项目 README、重构 README、补充业务流程说明 |
 | `creekmoon-apidoc-spec` | 标准化接口文档规范，统一概述、版本、环境、请求/响应、示例结构                     | 对外接口文档、开放平台文档、资源接口说明 |
-| `creekmoon-aglaea-design` | 产品页面体验与信息架构评审，以资深产品经理 + UX 设计师视角输出诊断报告和改进方案，不承担代码实现 | 审查 vibe coding 页面、评估看板/控制台/详情页、页面重构评审、交接后续改造 |
+| `creekmoon-aglaea-design` | UI 设计与页面构建规范，覆盖视觉方向、设计令牌（配色/字体/间距/圆角/阴影）、布局骨架、组件规则、动效与反 AI 模板清单，直接落地实现 | 搭建后台/看板/落地页、定配色与设计规范、打磨页面质感、去 AI 味、加交互动效 |
 | `creekmoon-himeko-auto-decision` | 长线任务的自动决策引擎，按激进/均衡/保守模式扫描产品文档、量化漂移并全权裁决下一步，不抛问题给人 | 多轮迭代开发、指定决策模式、需要 AI 自主排优先级与控范围蔓延 |
 
 ## 快速安装
@@ -68,7 +68,7 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 - 先用 `creekmoon-lightcone-memory` 建立项目上下文
 - 再用 `creekmoon-code-style` 约束具体实现风格
 
-5. 如果是页面体验问题，建议先用 `creekmoon-aglaea-design` 产出评估报告（含信息架构、数据链路、认知负荷、可执行清单），再交给后续实现 skill 或开发按报告改造。
+5. 如果要设计或改造页面，用 `creekmoon-aglaea-design`：它按"方向 → 构建 → 打磨"的链路工作，先确定视觉方向和设计令牌，再按布局骨架、组件规则和动效规范落地实现，并用反 AI 模板清单自检质感。
 
 6. 如果是多轮迭代的编程任务，建议：
 
@@ -98,7 +98,7 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 - 希望把“AI 怎么写”沉淀成可复用规则的人
 - 经常接手存量项目、需要快速建立上下文的人
 - 需要固定格式周报、接口文档、方案文档的项目团队
-- 用 AI 生成后台页面、看板、详情页，但希望先诊断“为什么不好用”再动手改的团队
+- 用 AI 生成后台页面、看板、落地页，但希望摆脱 AI 模板味、快速建立高质量页面设计的团队
 - 长线 vibe coding 或 agent 协作中，希望 AI 围绕产品方向自主决策、减少反复确认的团队
 
 ## 当前状态
