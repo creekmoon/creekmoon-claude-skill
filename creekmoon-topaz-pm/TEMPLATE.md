@@ -93,31 +93,37 @@ If a section truly doesn't apply, write "N/A — [reason]" rather than omitting.
 
 ---
 
-## 5. UX Decisions
+## 5. Interaction Requirements
 
-### Page Structure
-[Describe the page/screens layout: sections, navigation, key zones]
+> Requirements and constraints for whoever designs and builds the UI.
+> Describe what the interaction must accomplish — never page layout,
+> component placement, or visual styling. Those are design decisions
+> made downstream.
 
-### Information Hierarchy
-[What is most important? What draws attention first? What is secondary?]
+### Screen Inventory
+[Which screens/views must exist and what job each one does — no layout]
 
-### Component Placement
-| Element | Position | Rationale |
-|---------|----------|-----------|
-| [Primary CTA] | [Location] | [Why here — Fitts's Law, thumb zone, etc.] |
-| [Secondary action] | [Location] | [Why here] |
-| [Info display] | [Location] | [Why here] |
+### Information Priorities
+[Which information the user needs most, in order of importance. State the
+priority, not the position: "sync status must be discoverable at a glance",
+not "put the status badge top-right".]
 
 ### Interaction Model
 - Primary flow: [numbered steps with interaction details]
 - Gestures/shortcuts: [if applicable]
 - Undo/redo behavior: [if applicable]
 
+### Interaction Constraints
+| Constraint | Rationale |
+|-----------|-----------|
+| [e.g., "Primary task completable in ≤2 clicks"] | [Why this matters] |
+| [e.g., "Destructive actions need confirmation or undo"] | [Why] |
+
 ### Real Product References
 | Decision | Reference Product | What We Learned |
 |----------|------------------|-----------------|
-| [e.g., "Button placement"] | [Product X] | [Why they did it this way] |
-| [e.g., "Error state design"] | [Product Y] | [Why this pattern works] |
+| [e.g., "Recovery flow"] | [Product X] | [Why their flow works] |
+| [e.g., "Error state behavior"] | [Product Y] | [Why this pattern works] |
 
 ### Anti-Pattern Check Results
 | Check | Status | Fix Applied |

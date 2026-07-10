@@ -1,7 +1,9 @@
 # UX Pattern Library
 
-Proven patterns with success data. Reference these in Stage 3 when making
-interaction decisions. Don't blindly copy — understand WHY each pattern works.
+Proven patterns with success data. Reference these in Stage 3 when defining
+interaction requirements. Don't blindly copy — understand WHY each pattern
+works, and cite it as requirement rationale ("recovery must be inline, see
+Inline Validation data"), not as a layout prescription.
 
 ## Onboarding Patterns
 

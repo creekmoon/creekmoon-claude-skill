@@ -114,7 +114,7 @@ flow is optimized for minimal friction with inline validation and a clear
 
 ### User Flow (Happy Path — New User via SSO)
 1. User lands on `/login` page
-2. Page shows SSO buttons (Google, Apple) prominently at top
+2. Page presents SSO (Google, Apple) as the primary option
 3. User clicks "Continue with Google"
 4. OAuth popup → user selects account → popup closes
 5. Backend creates account or links existing account
@@ -140,69 +140,57 @@ flow is optimized for minimal friction with inline validation and a clear
 
 ---
 
-## 5. UX Decisions
+## 5. Interaction Requirements
 
-### Page Structure
-Single centered card layout on a clean, distraction-free background:
-```
-┌──────────────────────────────────────┐
-│  Logo (small, top center)            │
-│                                      │
-│  "Welcome to [Product]"              │
-│  "Sign in to continue"               │
-│                                      │
-│  ┌────────────────────────────────┐  │
-│  │  Continue with Google          │  │  ← Primary
-│  └────────────────────────────────┘  │
-│  ┌────────────────────────────────┐  │
-│  │  Continue with Apple           │  │  ← Primary
-│  └────────────────────────────────┘  │
-│                                      │
-│  ─────────── or ───────────          │  ← Divider
-│                                      │
-│  ┌────────────────────────────────┐  │
-│  │  Enter your email              │  │  ← Email input
-│  └────────────────────────────────┘  │
-│  ┌────────────────────────────────┐  │
-│  │  Continue →                    │  │  ← CTA (adaptive)
-│  └────────────────────────────────┘  │
-│                                      │
-│  Don't have an account? Sign up →    │
-└──────────────────────────────────────┘
-```
+> Requirements and constraints for whoever designs and builds the UI.
+> What the interaction must accomplish — layout and styling are decided
+> downstream.
 
-### Information Hierarchy
-1. **Brand recognition**: Small logo (users need to know they're in the right place)
-2. **Social proof heading**: "Welcome" (friendly, not "LOGIN REQUIRED")
-3. **Primary action**: SSO buttons (largest visual weight)
-4. **Secondary path**: Email input (accessible but visually subordinate)
-5. **Tertiary**: Sign up link (for new users who landed on wrong page)
+### Screen Inventory
+- **Login screen**: single entry point for both new and returning users;
+  offers SSO, email, and magic link paths
+- **Remembered-user variant**: recognized returning user can resume with a
+  single action
+- **Magic link confirmation**: "check your email" state after a link is sent
+- **Redirect destinations**: onboarding (first login) or dashboard
+  (returning) — out of scope here, referenced only
 
-### Component Placement
-| Element | Position | Rationale |
-|---------|----------|-----------|
-| Google/Apple buttons | Top of card, full width | Primary path per F-Pattern reading. Users scan top first. |
-| Email input | Below divider | Secondary path — accessible but subordinate |
-| "Forgot password" | Below password field, right-aligned | Close to the field it relates to. Right align = secondary action convention. |
-| "Sign up" link | Bottom center | Users who landed wrong need this, but it shouldn't compete with login |
-| "Remember me" | Below password, left-aligned | Near auth action, unchecked by default (privacy) |
+### Information Priorities
+1. **Which product the user is signing in to** — users must instantly know
+   they're in the right place
+2. **The fastest path in** — SSO options must be the most discoverable choice
+3. **The alternative path** — email login accessible without competing with SSO
+4. **Escape hatches** — recovery options (magic link, password reset) must
+   surface at the moment of failure, not be buried in a separate page
+5. **Sign-up path** for misdirected users — present but subordinate
 
 ### Interaction Model
-- **Primary flow**: Click SSO button → OAuth → redirect (3 steps, 5-10 seconds)
-- **Adaptive CTA**: Email field only shows "Continue". If email exists in DB,
-  CTA changes to "Sign in" and password field appears. If new email, CTA
-  shows "Create account" and prompts for password creation.
-- **Magic link**: Below password field, text link "Or send me a magic link"
-- **Keyboard**: Tab order follows visual order. Enter submits current form.
-- **Auto-focus**: Email input auto-focused on page load (desktop only — avoid
-  mobile keyboard popup)
+- **Primary flow**: choose SSO → OAuth → redirect (3 steps, 5-10 seconds)
+- **Adaptive CTA**: a single email field adapts — an email known to the
+  backend switches the flow to sign-in; a new email switches to account
+  creation. Eliminates the "Sign in vs Sign up" decision entirely.
+- **Magic link**: offered both as recovery when a password fails and as a
+  standalone passwordless option
+- **Keyboard**: full keyboard operability; Enter submits the current form
+- **Auto-focus**: email input focused on load (desktop only — avoid mobile
+  keyboard popup)
+
+### Interaction Constraints
+| Constraint | Rationale |
+|-----------|-----------|
+| SSO path completable in ≤2 clicks | Removing friction is the whole point; every extra step re-creates the 40% drop-off |
+| Remembered returning user resumes in 1 action | Recognition over recall (Nielsen #6) |
+| Wrong-password error must offer a recovery action inline | Dead-end errors are the top source of "forgot password" tickets |
+| OAuth cancel returns to default state with no error shown | Closing the popup is a user choice, not a failure |
+| Auth controls keep stable dimensions during loading | Prevents double-clicks and mis-taps in the most sensitive flow |
+| "Remember me" defaults to off | Privacy-safe default; user opts in |
 
 ### Real Product References
 | Decision | Reference Product | What We Learned |
 |----------|------------------|-----------------|
-| SSO buttons above fold | Notion, Linear, Figma | All leading SaaS products lead with SSO. Users expect it. Reduces signup friction by 40-60%. |
-| Adaptive CTA (sign in vs create) | Stripe dashboard | Single email field that adapts eliminates the "Sign in vs Sign up" confusion. Reduces cognitive load. |
-| Centered card on empty background | Linear, Vercel | Distraction-free auth pages increase completion. No navigation, no upsells, no feature lists. |
+| SSO as the primary path | Notion, Linear, Figma | All leading SaaS products lead with SSO. Users expect it. Reduces signup friction by 40-60%. |
+| Adaptive CTA (sign in vs create) | Stripe dashboard | A single adaptive email field eliminates the "Sign in vs Sign up" confusion. Reduces cognitive load. |
+| Distraction-free auth screen | Linear, Vercel | Auth screens with nothing but the auth task increase completion. No navigation, no upsells, no feature lists. |
 | Magic link as password alternative | Slack, Medium | Magic links reduce "forgot password" tickets to near zero. Users prefer them on mobile. |
 
 ### Anti-Pattern Check Results
@@ -212,10 +200,8 @@ Single centered card layout on a clean, distraction-free background:
 | No hover-dependent primary actions | ✅ | All actions always visible, touch-friendly |
 | No form field bloat | ✅ | SSO path = 1 click. Email path = max 3 fields (email, password, remember) |
 | No verbose onboarding | ✅ | Login page has 0 instructional text. Actions are self-evident. |
-| Loading states defined | ✅ | SSO button shows spinner during OAuth. Page shows skeleton during redirect. |
+| Loading states defined | ✅ | Every async action has a defined loading state; see State Definitions |
 | Error recovery paths exist | ✅ | See State Definitions section below |
-| No "AI gradient" design | ✅ | Clean white card on subtle gray background. No decorative effects. |
-| No emoji pollution | ✅ | No emojis in UI. Professional tone. |
 
 ### Nielsen Heuristic Score: 36/40
 
@@ -228,7 +214,7 @@ Single centered card layout on a clean, distraction-free background:
 | 5 | Error prevention | 3 | Email validation inline, magic link offered if password forgotten (-1 for no password strength indicator) |
 | 6 | Recognition rather than recall | 4 | Remembered account shown with avatar — user recognizes, doesn't need to recall |
 | 7 | Flexibility and efficiency of use | 3 | Keyboard shortcuts work, SSO is fast. (-1 for no "sign in with QR code" for power users) |
-| 8 | Aesthetic and minimalist design | 4 | Single card, no sidebar, no navigation, no upsells. Only what's needed. |
+| 8 | Aesthetic and minimalist design | 4 | Single-task screen: no sidebar, no navigation, no upsells. Only what's needed. |
 | 9 | Error recovery | 4 | Inline error messages with specific fixes. Magic link as recovery. |
 | 10 | Help and documentation | 2 | No help text on page. (-2: could use a "Need help?" link for edge cases) |
 | **Total** | | **36** | **Good** |
@@ -362,7 +348,7 @@ tickets indicate need.
 | Component | Type | Description | Linked Scenarios |
 |-----------|------|-------------|-----------------|
 | SSOButton | Action | Google/Apple branded sign-in buttons | S1, S4 |
-| AuthCard | Layout | Centered card with all auth options | All |
+| AuthScreen | Layout | Container holding all auth options | All |
 | EmailInput | Form | Email field with adaptive validation | S3, S4 |
 | PasswordInput | Form | Password field with show/hide toggle | S3 |
 | RememberedUserCard | Display | Avatar + name + continue button | S2 |
@@ -567,9 +553,9 @@ interface MagicLink {
    every modern SaaS (Figma, Vercel, Notion) uses this pattern.
 
 5. **No navigation, no sidebar, no upsells on login page**: Every
-   distraction increases abandonment. F-Pattern research shows users scan
-   top-left to right, then down. The auth card is the ONLY thing in the
-   visual field. This follows Linear's and Vercel's minimalist auth pages.
+   distraction increases abandonment, so the auth task is the only content
+   this screen carries. This follows Linear's and Vercel's minimalist auth
+   pages. (How that single task is laid out is a design decision downstream.)
 
 ### Key Tradeoffs
 | Decision | Option A | Option B | Chose | Why |

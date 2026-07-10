@@ -1,70 +1,12 @@
 # Anti-Patterns: AI UX Guardrails
 
-Load this in Stage 3 to check every interaction decision against known
+Load this in Stage 3 to check every interaction requirement against known
 AI-generated UX failures. Flag violations and provide fixes.
 
-## Visual Anti-Patterns
-
-### The "AI Gradient" Problem
-**Pattern**: Purple-to-blue gradients, excessive blur effects, floating orbs.
-**Why bad**: Signals "AI made this instantly." No brand differentiation.
-**Fix**: Use brand colors. If no brand exists, choose ONE distinctive accent
-color. Restraint over decoration.
-
-### Rounded Corner Overload
-**Pattern**: `border-radius: 24px` on everything.
-**Why bad**: Loses visual hierarchy. Everything feels the same weight.
-**Fix**: Vary intentionally. Sharp corners = importance/action. Soft corners
-= secondary/containers.
-
-### Emoji Pollution
-**Pattern**: Bullet points as emojis, decorative emojis in headers.
-**Why bad**: Feels unserious, cluttered.
-**Fix**: Emojis only for functional meaning (status indicators, reactions).
-Never decorative. In UI, use SVG icons from a consistent library
-(Heroicons/Lucide).
-
-### Generic Hero Sections
-**Pattern**: "Welcome to [Product]" + gradient + generic illustration.
-**Why bad**: Zero differentiation. Users have seen this 10,000 times.
-**Fix**: Lead with value proposition. Show the product. Be specific.
-
-### Stock Illustration Syndrome
-**Pattern**: Flat vector illustrations of "diverse people collaborating."
-**Why bad**: Generic, forgettable, builds no brand.
-**Fix**: Product screenshots, custom imagery, or no imagery at all.
-
----
-
-## Copy Anti-Patterns
-
-### Verbose Onboarding
-**Pattern**: "Let's get you started! First, we'll need to collect some
-information..."
-**Why bad**: Users want to DO, not read. Every word is friction.
-**Fix**: Reduce copy by 50%, then 50% again. Show, don't tell.
-
-### Exclamation Point Abuse
-**Pattern**: "Welcome! You're all set! Here's what's next!"
-**Why bad**: Forced enthusiasm feels fake. Tiring to read.
-**Fix**: Reserve exclamation points for genuine moments of delight.
-
-### Corporate Jargon
-**Pattern**: "Leverage our robust solution to optimize your workflow."
-**Why bad**: Meaningless. Users tune it out.
-**Fix**: Speak like a human. "Get more done" beats "optimize your workflow."
-
-### Hedging Language
-**Pattern**: "This might help you..." "You may want to consider..."
-**Why bad**: Lacks confidence. Users want guidance.
-**Fix**: Be direct. "Do this" not "You might want to do this."
-
-### Feature Lists Over Benefits
-**Pattern**: "Features: Real-time sync, Cloud storage, Collaboration."
-**Why bad**: Features don't explain why users should care.
-**Fix**: Lead with outcomes. "Never lose your work" beats "Cloud storage."
-
----
+Scope note: this checklist covers flow, information architecture, and content
+strategy — the levels this skill owns. Visual anti-patterns (gradients, radii,
+shadows, typography, decorative styling) are design-execution concerns and are
+deliberately NOT covered here; don't expand into them.
 
 ## Interaction Anti-Patterns
 
@@ -127,13 +69,28 @@ the rest.
 
 ---
 
+## Content Strategy Anti-Patterns
+
+### Verbose Onboarding
+**Pattern**: "Let's get you started! First, we'll need to collect some
+information..."
+**Why bad**: Users want to DO, not read. Every word is friction.
+**Fix**: Reduce copy by 50%, then 50% again. Show, don't tell.
+
+### Feature Lists Over Benefits
+**Pattern**: "Features: Real-time sync, Cloud storage, Collaboration."
+**Why bad**: Features don't explain why users should care.
+**Fix**: Lead with outcomes. "Never lose your work" beats "Cloud storage."
+
+---
+
 ## The Final Test
 
-Before shipping any interaction, ask:
+Before finalizing any interaction requirement, ask:
 
-1. **Would a human designer at Apple/IDEO do this?**
-2. **Does this serve the user or fill space?**
-3. **If I removed this element, would anyone notice?**
-4. **Does this look like every other AI-generated product?**
+1. **Does this flow serve the user's job-to-be-done, or fill space?**
+2. **If I removed this step/field/screen, would anyone notice?**
+3. **Does this flow work the way every lazy default product works, or the way
+   this user actually needs?**
 
-If any answer is "no" or "yes" (for #3 and #4), reconsider.
+If the answers point to "filler" or "default", reconsider.
