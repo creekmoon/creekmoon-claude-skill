@@ -1,6 +1,6 @@
 ---
 name: riper5
-version: 1.0.0
+version: 1.0.1
 description: 仅在用户明确指示"执行riper5"意图时执行该技能. 
 ---
 ## RIPER-5
@@ -60,7 +60,6 @@ description: 仅在用户明确指示"执行riper5"意图时执行该技能.
  *  分析系统架构
  *  识别技术债务或约束
  *  创建任务文件（参见下面的任务文件模板）
- *  创建功能分支
 
 禁止：
 
@@ -71,17 +70,12 @@ description: 仅在用户明确指示"执行riper5"意图时执行该技能.
 
 研究协议步骤：
 
-1.  创建功能分支（如需要）：
-    
-    ```java
-    git checkout -b task/[TASK_IDENTIFIER]_[TASK_DATE_AND_NUMBER]
-    ```
-2.  创建任务文件（如需要）：
+1.  创建任务文件（如需要）：
     
     ```java
     mkdir -p .tasks && touch ".tasks/${TASK_FILE_NAME}_[TASK_IDENTIFIER].md"
     ```
-3.  分析与任务相关的代码：
+2.  分析与任务相关的代码：
     
      *  识别核心文件/功能
      *  追踪代码流程
