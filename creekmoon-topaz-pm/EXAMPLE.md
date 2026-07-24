@@ -140,11 +140,33 @@ flow is optimized for minimal friction with inline validation and a clear
 
 ---
 
-## 5. Interaction Requirements
+## 5. Structure & Interaction Requirements
 
-> Requirements and constraints for whoever designs and builds the UI.
-> What the interaction must accomplish — layout and styling are decided
-> downstream.
+> The structural blueprint for whoever builds the UI. Structure is decided
+> here; only visual styling is left downstream.
+
+### Page Structure
+
+| Screen | Track | Page Form | Layout Skeleton |
+|--------|-------|-----------|-----------------|
+| Login (all variants) | Product UI | Form | Centered single column (~400px content) |
+
+```text
+┌────────────────────────────────────────┐
+│              [产品 Logo]                │ ← 核心决策区：确认来对了地方
+│                                        │
+│   [ Continue with Google ]             │ ← 操作区：最快路径最显眼
+│   [ Continue with Apple  ]             │
+│   ─────────── or ───────────           │
+│   [Email ____________________]         │ ← 操作区：备选路径，不与 SSO 竞争
+│   (password / create — adaptive)       │
+│                                        │
+│   [inline error + magic-link recovery] │ ← 反馈状态区：失败现场给恢复动作
+│   Need an account? Sign up             │ ← 辅助信息区：存在但降级
+└────────────────────────────────────────┘
+```
+
+No navigation, no sidebar, no marketing sections: a single-task screen.
 
 ### Screen Inventory
 - **Login screen**: single entry point for both new and returning users;
@@ -555,7 +577,8 @@ interface MagicLink {
 5. **No navigation, no sidebar, no upsells on login page**: Every
    distraction increases abandonment, so the auth task is the only content
    this screen carries. This follows Linear's and Vercel's minimalist auth
-   pages. (How that single task is laid out is a design decision downstream.)
+   pages. (The single-task structure — centered column, no chrome — is
+   decided here; its visual execution is downstream.)
 
 ### Key Tradeoffs
 | Decision | Option A | Option B | Chose | Why |

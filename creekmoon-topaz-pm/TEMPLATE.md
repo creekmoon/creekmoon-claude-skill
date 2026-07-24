@@ -93,20 +93,28 @@ If a section truly doesn't apply, write "N/A — [reason]" rather than omitting.
 
 ---
 
-## 5. Interaction Requirements
+## 5. Structure & Interaction Requirements
 
-> Requirements and constraints for whoever designs and builds the UI.
-> Describe what the interaction must accomplish — never page layout,
-> component placement, or visual styling. Those are design decisions
-> made downstream.
+> The structural blueprint for whoever builds the UI. Structure — track,
+> page form, layout skeleton, information zoning — is decided HERE (rules
+> in references/structure.md). Only visual styling (colors, typography,
+> spacing polish, motion) is left to downstream design.
+
+### Page Structure
+| Screen | Track | Page Form | Layout Skeleton |
+|--------|-------|-----------|-----------------|
+| [Screen] | Product UI / Marketing | [Dashboard / Console / Detail / Form / Workflow / Landing] | [Sidebar+content / Top nav / List-detail / Split / Centered column] |
+
+[ASCII skeleton per key screen, with information zoning marked: decision
+zone / support zone / action zone / feedback zone]
 
 ### Screen Inventory
-[Which screens/views must exist and what job each one does — no layout]
+[Which screens/views must exist and what job each one does]
 
 ### Information Priorities
-[Which information the user needs most, in order of importance. State the
-priority, not the position: "sync status must be discoverable at a glance",
-not "put the status badge top-right".]
+[Which information the user needs most, in order of importance, and which
+zone of the skeleton it lands in: "sync status sits in the decision zone,
+visible at a glance".]
 
 ### Interaction Model
 - Primary flow: [numbered steps with interaction details]

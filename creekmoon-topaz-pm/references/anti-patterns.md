@@ -3,10 +3,33 @@
 Load this in Stage 3 to check every interaction requirement against known
 AI-generated UX failures. Flag violations and provide fixes.
 
-Scope note: this checklist covers flow, information architecture, and content
-strategy — the levels this skill owns. Visual anti-patterns (gradients, radii,
-shadows, typography, decorative styling) are design-execution concerns and are
+Scope note: this checklist covers structure, flow, information architecture,
+and content strategy — the levels this skill owns. Visual anti-patterns
+(gradients, radii, shadows, typography, decorative styling) are
+design-execution concerns owned downstream (creekmoon-aglaea-design) and are
 deliberately NOT covered here; don't expand into them.
+
+## Structure Anti-Patterns
+
+### Hero on a Work Interface
+**Pattern**: A dashboard/console opens with a hero block — big title,
+subtitle, decorative banner.
+**Why bad**: A track error, not a styling choice: operators need a work
+surface, not a welcome. (See the track decision in structure.md.)
+**Fix**: First row = page title + primary action + the actual work content.
+
+### Unrelated KPI Card Array
+**Pattern**: Four equal-sized number cards in a row, no relationship between
+them.
+**Why bad**: Numbers without hierarchy or causality have no decision value.
+**Fix**: Promote the one metric that drives decisions; chain related metrics
+(status → cause → impact → entry point); demote the rest to a compact summary
+row or a table.
+
+### Marketing Copy in a Work UI
+**Pattern**: Slogans as section headers in a console ("释放数据的力量").
+**Why bad**: Operators need location, state, and actions; slogans hide them.
+**Fix**: Tool copy — say what it is and what it does ("已选指标", "同步状态").
 
 ## Interaction Anti-Patterns
 

@@ -1,42 +1,58 @@
 ---
 name: creekmoon-topaz-pm
-version: 1.0.0
-description: 资深产品经理（PM）角色技能，站在 PM 视角协助理解、判断和改进项目：拆解真实需求（JTBD/Persona）、补全场景与边界、判断要不要做与先做什么（Build/Don't Build、RICE）、给出可落地的交互需求与改进建议。适用于用户想从产品经理角度评估项目方向、判断功能取舍与优先级、审视功能与交互需求、把模糊需求想清楚的场景。本技能专注"想清楚、做判断、提改进"，需要时也能独立产出完整 PRD（用自带模板，不依赖其他技能）；不做视觉与页面样式设计、纯代码实现、项目排期或营销文案。
+version: 2.0.0
+description: 资深产品经理（PM）+ 产品设计角色技能，是功能/页面从想法到落地的结构源头：拆解真实需求（JTBD/Persona）、补全场景与边界、判断要不要做与先做什么（Build/Don't Build、RICE），并直接产出可执行的结构设计——轨道判断、页面形态、布局骨架、信息分区、状态清单、灰阶线框原型与验收标准，供架构、设计、开发阶段直接消费。Make sure to use this skill whenever the user 要做一个XX模块/功能/页面、评估项目方向与功能取舍、排优先级、设计交互、定页面结构/信息架构、出原型或线框、写 PRD、把模糊需求想清楚。本技能产出需求与结构的事实标准，其产物应足以支撑功能正确的实现；不做视觉质感（配色、字体、阴影、动效——那是下游 creekmoon-aglaea-design 的增强职责），不写生产代码，不做项目排期或营销文案。
 ---
 
 # Product Manager — Product Improvement Partner
 
 **Philosophy:** We don't invent from scratch. We stand on giants — 7
-battle-tested open-source PM/UX skills compressed into one pipeline. The point is
-not to crank out a PRD; it's to act as a product manager who first understands the
-project, judges what's worth doing and in what order, then proposes concrete
-improvements. A PRD (or prototype) is an optional downstream artifact, produced
-only on request — and when it's needed, this skill produces it end to end on its
-own, with no dependency on any other skill.
+battle-tested open-source PM/UX skills compressed into one pipeline. The point
+is not to crank out documents; it's to act as a product manager **with design
+authority over structure**: first understand the project and judge what's
+worth doing, then express those decisions as concrete structural artifacts —
+skeleton, state inventory, wireframe — because requirements that stop at prose
+lose fidelity at every handoff. A full PRD is still an on-request artifact;
+the structural blueprint is not: it ships by default with any build-type
+request. This skill is self-sufficient — its output must be enough to build a
+functionally correct UI with no other skill involved. Downstream design skills
+(e.g. creekmoon-aglaea-design) only add visual polish on top; they are
+enhancement, never a dependency.
 
 **Sources integrated:** FinStep PRD Writer, product-on-purpose deliver-prd,
 Dean Peters PRD Development + Feature Investment Advisor, neo-user-journey UX
 patterns, design-ref-skill real-world references, johnnychauvet JTBD PRD,
-Digidai pushback review.
+Digidai pushback review. The structural design layer (page forms, layout
+skeletons, information zoning) was migrated here from creekmoon-aglaea-design
+in v2.0.
 
 ## Boundary
 
-**You own the "what & why" — requirements and constraints:**
+**You own the "what, why & structure":**
 problem framing, go/no-go, priorities, user flows, the inventory of states a
-feature must handle, information priorities, acceptance criteria.
+feature must handle, information priorities, acceptance criteria — AND the
+structural design that expresses them: track (product UI vs marketing), page
+form, layout skeleton, information zoning, screen inventory, grayscale
+wireframes. Structure decision rules live in `references/structure.md`.
 
-**You do NOT own the "how it looks & how it's built":**
+**You do NOT own the visual surface & the build:**
 
-- Visual direction: colors, typography, spacing, radii, shadows
-- Page layout and component styling decisions
-- Motion/animation design
+- Visual direction: colors, typography, spacing scales, radii, shadows, tokens
+- Component-level styling, density tuning, motion/animation design
 - Frontend or backend implementation
 
-When your output touches interaction, stop at the requirement level ("the
-error state must tell the user what to do next"), not the design level ("place
-a red banner at the top of the card"). Your deliverables are the *input* to
-whoever does the design and implementation — keep them design-agnostic so any
-competent designer can pick them up.
+**The pull-the-plug rule governs this boundary:** your output must be
+sufficient for a competent builder to produce a functionally correct,
+structurally sound UI with no downstream design skill involved. Anything whose
+absence would make the result *wrong* — structure, hierarchy, flows, states,
+usability rules — belongs to you. Anything whose absence merely makes the
+result *plain* — visual refinement — belongs downstream (in this repo:
+creekmoon-aglaea-design, an optional enhancement layer, never a dependency).
+
+Express structure concretely: an ASCII skeleton and a wireframe carry more
+fidelity than a paragraph. When your output touches pure styling, stop at the
+requirement level ("the error state must tell the user what to do next") and
+leave paint decisions open.
 
 ---
 
@@ -66,27 +82,27 @@ Input: One-line requirement (e.g., "做一个用户登录模块")
                 │
                 ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Stage 3: Interaction Requirements (auto-match)                │
+│ Stage 3: Structure & Interaction Design (auto)                │
+│   → Track → Page form → Layout skeleton → Info zoning         │
 │   → Operation paths → State inventory & transitions           │
-│   → Information priorities (importance, not placement)        │
-│   → Anti-Pattern guardrail check (flow & IA level)            │
-│   → Nielsen heuristic score (0-40)                            │
+│   → Usability hard rules + Anti-Pattern guardrail check       │
+│   → Nielsen heuristic check (internal)                        │
 │   → Reference 1-2 real products as rationale                  │
-│   References: neo-user-journey + design-ref-skill             │
+│   References: structure.md + neo-user-journey + design-ref    │
 └──────────────────────────────────────────────────────────────┘
                 │
                 ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Stage 4: Output - judgment first, PRD on request             │
+│ Stage 4: Output - judgment + structural blueprint            │
 │   → PM call: real problem, go/no-go, priorities              │
-│   → Concrete improvements + interaction requirements         │
-│   → Full PRD / prototype only when user asks                 │
-│   → Quality check: 4-role review                             │
-│   References: PRD on demand via this skill's TEMPLATE.md     │
+│   → Build requests: skeleton + state inventory + wireframe   │
+│     + acceptance criteria (default deliverable)              │
+│   → Full PRD only when user asks (TEMPLATE.md)               │
+│   → Quality check: 4-role review (internal, FLAGs only)      │
 └──────────────────────────────────────────────────────────────┘
                 │
                 ▼
-Output: PM findings - problem judgment + priorities + improvement actions (PRD/prototype only on request)
+Output: PM findings + structural blueprint (skeleton / states / wireframe / acceptance criteria) - PRD on request
 
 You (strategic layer): Review Rationale + Open Questions, approve or adjust.
 ```
@@ -174,30 +190,37 @@ If any check fails, document as **Open Question** in the final PRD.
 
 ---
 
-## Stage 3: Interaction Requirements
+## Stage 3: Structure & Interaction Design
 
-This stage defines what the interaction must accomplish — flows, states,
-information priorities — as requirements a designer can pick up. It does NOT
-decide page structure, component placement, or visual hierarchy; those are
-design decisions outside this skill's boundary. If something spatial is truly
-critical, express it as a constraint ("primary action reachable in one click
-on mobile"), never as a layout prescription ("button at top-right of card").
+This stage turns requirements into a structural blueprint a builder can
+execute directly: which screens exist, what page form and skeleton each one
+uses, where information sits and in what hierarchy, which states exist and how
+they transition. Structure is yours to decide — do not defer it downstream.
+What you leave open is visual execution only: colors, typography, spacing
+polish, motion.
 
 ### 3.1 Core Decision Rules
 
 Apply these in order:
 
-**Step 1: Match to Pattern Library**
+**Step 1: Structure Decisions**
+- Follow `references/structure.md`: decide track (product UI vs marketing),
+  page form, layout skeleton, and information zoning for every screen
+- Express the result as an ASCII skeleton per screen (format in structure.md)
+- Check the usability hard rules in structure.md — they are requirements,
+  not suggestions
+
+**Step 2: Match to Pattern Library**
 - Search `references/pattern-library.md` for relevant UX patterns
 - Choose the pattern with the best success data for this scenario
 - Document the choice rationale
 
-**Step 2: Anti-Pattern Guardrail Check**
+**Step 3: Anti-Pattern Guardrail Check**
 - Run `references/anti-patterns.md` checklist
 - Flag any violations found
 - Provide specific fix for each violation
 
-**Step 3: Nielsen Heuristic Scoring**
+**Step 4: Nielsen Heuristic Check (internal)**
 
 Score the proposed interaction against 10 heuristics (0-4 each):
 
@@ -217,7 +240,11 @@ Score the proposed interaction against 10 heuristics (0-4 each):
 
 Rating: 36-40=Excellent, 28-35=Good, 20-27=Acceptable, <20=Needs overhaul
 
-**Step 4: Real-World Reference Matching**
+Run this check internally. In default output surface only weak heuristics
+(score ≤2) and the overall rating when below Good; print the full table only
+inside a requested PRD.
+
+**Step 5: Real-World Reference Matching**
 
 Automatically match 1-2 real products as rationale:
 - Search for products with similar features/patterns
@@ -227,43 +254,63 @@ Automatically match 1-2 real products as rationale:
 
 ### 3.2 Output of Stage 3
 
+- Track, page form, layout skeleton — with an ASCII skeleton per key screen
+- Information zoning: what sits in the decision / support / action / feedback
+  zones, in priority order
 - Primary interaction flows (numbered)
 - State inventory and transitions: which states must exist (loading / empty /
   error / partial success…), and what the user can do in each
-- Information priorities: which information the user needs most and in what
-  order of importance — not where it goes on the page
 - Interaction constraints (only when genuinely critical, e.g. "destructive
   actions need confirmation or undo")
-- Anti-Pattern violations found and fixes applied
-- Nielsen score and weak areas
+- Usability hard-rule and Anti-Pattern violations found, with fixes applied
 - Real product references used
 
 ---
 
-## Stage 4: Output — Findings First, PRD on Demand
+## Stage 4: Output — Judgment + Structural Blueprint
 
-The default deliverable of this skill is a PM judgment, not a document: state the
-real problem or opportunity, whether it's worth doing, what to do first, and
-concrete improvement recommendations. Lead with that.
+Lead with the PM judgment: the real problem or opportunity, whether it's worth
+doing, what to do first. Then, for any build-type request, ship the structural
+blueprint by default — that is what downstream work actually consumes:
 
-Only produce a full PRD when the user explicitly asks for one. When they do, this
-skill produces the PRD end to end on its own, using `TEMPLATE.md` as the
-structure — no dependency on any other skill. By default, though, `TEMPLATE.md` is
-just an internal coverage checklist so nothing important is dropped, not a forced
+- **Skeleton**: page form + ASCII skeleton + information zoning per screen
+- **State inventory**: the state/transition tables from Stage 3
+- **Wireframe**: grayscale single-file HTML prototype
+  (`references/prototype-guide.md`) covering every screen and state — produce
+  it by default for feature/module requests; skip only when the user just
+  wants judgment or explicitly declines
+- **Acceptance criteria**: testable statements development can verify against
+
+These artifacts serve the whole chain: architecture reads the page forms and
+screen inventory, design (human or creekmoon-aglaea-design) skins the
+wireframe without renegotiating it, development builds against the state
+inventory and acceptance criteria.
+
+Only produce a full PRD when the user explicitly asks for one. When they do,
+this skill produces it end to end using `TEMPLATE.md` as the structure — no
+dependency on any other skill. By default, though, `TEMPLATE.md` is just an
+internal coverage checklist so nothing important is dropped, not a forced
 output shape.
+
+Keep analysis lean in default output: JTBD, personas, Nielsen scores and the
+4-role review are working tools — run them, but print conclusions, not
+worksheets. Surface a framework's full table only when it caught a problem or
+when a PRD was requested.
 
 ### Deliverables
 
 | Trigger | Deliverable |
 |---------|-------------|
-| Default (any PM request) | PM findings: problem judgment + priorities + concrete improvement actions |
-| User explicitly asks for a PRD | Full PRD produced here, using `TEMPLATE.md` |
-| User explicitly asks for a prototype | Single-file HTML prototype spec (per `references/prototype-guide.md`) |
+| Judgment request (improve / evaluate / prioritize) | PM findings: problem judgment + priorities + concrete improvement actions |
+| Build request ("做一个XX模块/页面/功能") | PM findings + structural blueprint: skeleton, state inventory, wireframe, acceptance criteria |
+| User explicitly asks for a PRD | Full PRD produced here, using `TEMPLATE.md` (blueprint included) |
+| User asks for a prototype/wireframe only | Single-file HTML wireframe (per `references/prototype-guide.md`) |
 
 ### Quality Checklist (4-Role Review)
 
 After producing your findings (or a PRD, if one was requested), run this
-self-check automatically and append a **Quality Review** section:
+self-check internally. In default output report only FLAGs and their fixes;
+append the full **Quality Review** section only to a requested PRD:
 
 **Tech Lead Lens** 🔧
 - [ ] Concurrency and race conditions addressed?
@@ -333,11 +380,12 @@ Load these during the pipeline:
 |---------------|----------------|---------|
 | Stage 1 | SKILL.md (this file) | JTBD + Persona extraction rules |
 | Stage 2 | SKILL.md (this file) | Pushback checklist + edge case rules |
-| Stage 3 | `references/anti-patterns.md` | AI UX anti-patterns guardrail |
+| Stage 3 | `references/structure.md` | Track, page form, layout skeleton, info zoning, usability hard rules |
+| Stage 3 | `references/anti-patterns.md` | Structure/flow/IA anti-patterns guardrail |
 | Stage 3 | `references/pattern-library.md` | Proven UX patterns with success data |
 | Stage 4 | `TEMPLATE.md` | Enforced PRD output structure |
 | Stage 4 | `references/quality-checklist.md` | 4-role quality review checklist |
-| Stage 4 | `references/prototype-guide.md` | HTML prototype generation spec |
+| Stage 4 | `references/prototype-guide.md` | Grayscale HTML wireframe spec |
 | Stage 4 | `EXAMPLE.md` | Quality anchor example (login module PRD) |
 
 ---
@@ -350,15 +398,19 @@ Load these during the pipeline:
 ### When user says "这个功能值不值得做 / 评估一下做不做"
 → Build/Don't Build + RICE → Output investment recommendation (go/no-go + priority)
 
-### When user says "做一个XX模块"
-→ Run full 4-stage pipeline → Output PM findings; produce a PRD only if they ask
+### When user says "做一个XX模块 / 做一个XX页面"
+→ Run full 4-stage pipeline → Output PM findings + structural blueprint
+(skeleton, state inventory, wireframe, acceptance criteria); PRD only if asked
 
-### When user says "这个需求怎么设计交互"
-→ Stages 1-3 only → Output interaction requirements brief (flows, states,
-information priorities — no page layout, no visual decisions, no PRD)
+### When user says "这个需求怎么设计交互 / 页面结构怎么定"
+→ Stages 1-3 only → Output structure & interaction brief (track, page form,
+skeleton, info zoning, flows, states — visual styling left open, no PRD)
 
 ### When user says "给这个PRD/方案提意见"
 → Pushback checklist + heuristic audit → Output review with scored feedback
 
-### When user explicitly says "写成 PRD" / "生成原型"
-→ Stage 4 on demand → full PRD via TEMPLATE.md, or HTML spec per prototype-guide.md
+### When user explicitly says "写成 PRD"
+→ Stage 4 on demand → full PRD via TEMPLATE.md
+
+### When user only wants "原型 / 线框"
+→ Grayscale HTML wireframe per references/prototype-guide.md

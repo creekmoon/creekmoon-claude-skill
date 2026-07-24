@@ -3,12 +3,15 @@
 Use this guide when the user requests a prototype. Generate single-file HTML
 prototypes that can be opened directly in a browser.
 
-## Positioning: Low-Fidelity on Purpose
+## Positioning: Structural Source of Truth, Visually Blank on Purpose
 
-A PM prototype communicates **structure, flows, and states** — what screens
-exist, what the user can do, what happens next. It is NOT a visual design
-deliverable: it makes no claims about colors, typography, spacing systems, or
-brand. Visual design happens downstream, by whoever owns design execution.
+A PM prototype is the **structural source of truth**: it commits to the
+decisions made in `references/structure.md` — page form, layout skeleton,
+information zoning, screen inventory, flows, and states. What it deliberately
+does NOT commit to is visual design: it makes no claims about colors,
+typography, spacing systems, or brand. Visual execution happens downstream (a
+human designer or creekmoon-aglaea-design), on top of this structure —
+enhancing it, not renegotiating it.
 
 Therefore prototypes are **grayscale wireframes**:
 
@@ -17,13 +20,14 @@ Therefore prototypes are **grayscale wireframes**:
   (error, success), use text labels like `[错误]` or a darker gray — never a
   color decision that could be mistaken for a design choice.
 - Default system fonts, plain rectangles, minimal rounding. The rougher it
-  looks, the clearer it is that layout and styling are still open questions.
-- Realistic content and working interactions — fidelity goes into the flow,
-  not the paint.
+  looks, the clearer it is that styling is still an open question — the
+  structure, however, is decided here and not up for renegotiation.
+- Realistic content and working interactions — fidelity goes into structure
+  and flow, not the paint.
 
-This keeps the prototype honest: reviewers discuss flows and scope instead of
-debating button colors, and the design phase starts from requirements rather
-than from an accidental de-facto design.
+This keeps the prototype honest: reviewers discuss structure, flows and scope
+instead of debating button colors, and the design phase starts from a fixed
+structure with open paint, rather than renegotiating both.
 
 ## Tech Spec
 
@@ -52,14 +56,16 @@ but nothing beyond that.
 
 ## What Every Prototype Must Demonstrate
 
-1. **Every screen in the flow** — including the ones that only appear on
+1. **The chosen structure** — each screen laid out per the page form, layout
+   skeleton, and information zoning decided in structure.md.
+2. **Every screen in the flow** — including the ones that only appear on
    error or empty paths.
-2. **Every state from the State Definitions section** — default, loading,
+3. **Every state from the State Definitions section** — default, loading,
    empty, success, error, partial error. Add visible dev-only controls
    ("模拟：加载失败") so reviewers can trigger each state without luck.
-3. **The happy path end to end** — clicking through the primary flow must
+4. **The happy path end to end** — clicking through the primary flow must
    actually work with mock data.
-4. **Recovery paths** — what the user clicks when something goes wrong.
+5. **Recovery paths** — what the user clicks when something goes wrong.
 
 If a screen or state exists in the PRD but not in the prototype, that's a gap.
 
@@ -108,8 +114,8 @@ const mockData = {
 2. **No build step**: Open directly in browser, no npm install
 3. **Interactive**: Buttons work, forms validate, flows navigate, states switch
 4. **Responsive enough**: Usable at mobile (375px) and desktop (1440px) widths —
-   demonstrate that the flow survives a small screen, without committing to a
-   layout system
+   demonstrate that the chosen skeleton survives a small screen (sidebar
+   collapses, tables scroll or drop columns)
 5. **Clean data**: Use realistic mock data, not "lorem ipsum" or "test1/test2"
 6. **No visual design**: grayscale only, no icons libraries, no illustrations,
    no motion beyond instant show/hide — leave every visual decision open

@@ -1,7 +1,8 @@
 # PRD Quality Checklist
 
-Run this checklist automatically after generating every PRD. Append results
-to the Quality Review section.
+Run this checklist internally after producing findings or a PRD. In default
+(findings) output report only FLAGs and their fixes; append the full Quality
+Review section only to a requested PRD.
 
 ---
 
