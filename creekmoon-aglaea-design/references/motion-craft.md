@@ -60,6 +60,17 @@ motion.md 决定"要不要动、多快、什么曲线"；本文件是决定之�
 - **越界不硬停**：超出边界后按比例衰减位移（拖得越多动得越少）。现实里的东西不会撞上无形的墙，硬停会被当成 bug。
 - 直接操纵过程中不加任何缓动（元素锁死跟随指针），松手后才允许弹簧或曲线归位。
 
+## 滚动驱动动效
+
+- **禁止手写 `window.addEventListener('scroll')`**：每个滚动帧都触发、没有批处理，必然掉帧。用 `useScroll()`、GSAP ScrollTrigger、`IntersectionObserver`，或 CSS 滚动驱动动画（`animation-timeline: view()`）。
+- **连续值不要进 `useState`**：滚动进度、鼠标坐标、拖拽位移放进 state 会让整棵 React 树每帧重渲染，移动端直接崩。用 `useMotionValue` / `useTransform` / `useScroll` 把值留在渲染周期之外。同理，`requestAnimationFrame` 循环里不要碰 state。
+- 简单的"进入视口就出现"用 `whileInView` 配 `viewport={{ once: true, amount: 0.3 }}` 就够，不要为此上 GSAP。GSAP 留给真正需要 pin / scrub 的场景。
+- **钉住类动效（卡片堆叠、横向滚动劫持）最常见的坑是触发点写错**：`start` 必须是 `"top top"`（区块顶部碰到视口顶部才开始），写成 `"top center"` 或 `"top 80%"` 会让用户进场时看到动画已经播了一半。横向平移的滚动长度用 `end: () => "+=" + distance`，其中 `distance = track.scrollWidth - window.innerWidth`，配 `scrub: 1` 和 `invalidateOnRefresh: true`；卡片堆叠时除最后一张外全部 `pin: true`，缩放由**下一张**卡片的滚动进度驱动。
+- `useEffect` 里创建的滚动动画必须清理：用 `gsap.context()` 包起来、cleanup 里 `ctx.revert()`，否则热更新和路由切换后会残留僵尸 trigger。
+- reduced-motion 下整套滚动编排直接跳过（`if (reduce) return`），不是减速播放。
+- 颗粒 / 噪点滤镜只挂在 `fixed` + `pointer-events-none` 的伪元素上，绝不挂在滚动容器上——持续的 GPU 重绘会毁掉移动端帧率。
+- **说了有动效就要真的有**：定了中高档动效强度，页面就必须真的动起来（首屏进场、关键区块滚动揭示、CTA 手感至少要有）。做不出来就降到低档交一个干净的静态页，不要留半成品动效——被截断的滚动触发、跳帧的进场、忘了清理的监听，比没有动效糟得多。
+
 ## 实现选型
 
 | 场景 | 用什么 | 原因 |
