@@ -1,7 +1,7 @@
 ---
 name: creekmoon-aglaea-design
-version: 3.0.0
-description: 视觉与质感增强技能（锦上添花层）：在需求与页面结构已定的前提下，负责视觉方向与设计令牌（配色、字体、间距、圆角、阴影）、组件质感与交互状态的视觉表达、动效，并按反 AI 模板清单打磨质感，把界面从"大模型默认审美"提升到 Linear / Stripe 级。消费上游（creekmoon-topaz-pm 或用户）给出的骨架、状态清单与线框，不重新决定产品结构。Make sure to use this skill whenever the user asks to 把页面做好看、提升质感、去掉 AI 味、选配色、定字体、做设计规范、加动效/过渡动画、打磨界面细节，或在构建/实现页面时需要视觉质量层，或抱怨 vibe coding 生成的页面配色难看、细节粗糙、交互生硬时。
+version: 3.1.0
+description: 视觉与质感增强技能（锦上添花层）：在需求与页面结构已定的前提下，负责视觉方向与设计令牌（配色、字体、间距、圆角、阴影）、组件质感与交互状态的视觉表达、动效，并按反 AI 模板清单打磨质感，把界面从"大模型默认审美"提升到 Linear / Stripe 级。消费上游（creekmoon-topaz-pm 或用户）给出的骨架、状态清单与线框，不重新决定产品结构。Make sure to use this skill whenever the user asks to 把页面做好看、提升质感、去掉 AI 味、选配色、定字体、做设计规范、加动效/过渡动画、做拖拽或手势交互、调动画时长与缓动、修动画卡顿掉帧、打磨界面细节，或在构建/实现页面时需要视觉质量层，或抱怨 vibe coding 生成的页面配色难看、细节粗糙、交互生硬时。
 ---
 
 # Creekmoon Aglaea Design
@@ -32,13 +32,26 @@ description: 视觉与质感增强技能（锦上添花层）：在需求与页�
 
 | 模式 | 用户在要什么 | 加载 |
 |------|------------|------|
-| **构建增强**（默认） | 实现一个页面/区块并要求质感："搭个管理页"、"把这个界面实现出来"。结构来自上游产物；缺失则按边界一节做标注的最小假设 | [references/tokens.md](./references/tokens.md)、[references/layout.md](./references/layout.md)、[references/components.md](./references/components.md)；涉及过渡动画再加 [references/motion.md](./references/motion.md) |
+| **构建增强**（默认） | 实现一个页面/区块并要求质感："搭个管理页"、"把这个界面实现出来"。结构来自上游产物；缺失则按边界一节做标注的最小假设 | [references/tokens.md](./references/tokens.md)、[references/layout.md](./references/layout.md)、[references/components.md](./references/components.md)；涉及过渡动画再加 [references/motion.md](./references/motion.md)，涉及拖拽/手势/揭示效果再加 [references/motion-craft.md](./references/motion-craft.md) |
 | **方向** | 视觉风格决策："选个配色"、"定一套设计规范"、"什么风格适合这个产品" | [references/direction.md](./references/direction.md)、[references/tokens.md](./references/tokens.md) |
 | **打磨** | 已有页面提升质感："做好看一点"、"去掉 AI 味"、"看起来更专业" | [references/anti-patterns.md](./references/anti-patterns.md)、[references/tokens.md](./references/tokens.md)、[references/components.md](./references/components.md) |
-| **动效** | 交互动画："加个过渡"、"让它更顺滑"、"抽屉弹出太生硬" | [references/motion.md](./references/motion.md) |
-| **诊断** | 只想知道哪里不对："这页面为什么难用/难看" | [references/anti-patterns.md](./references/anti-patterns.md)、[references/layout.md](./references/layout.md)；输出简短的问题清单 + 每条的具体改法；属于结构层的问题（缺状态、流程绕、信息优先级错）标注为上游问题，建议走 creekmoon-topaz-pm |
+| **动效** | 交互动画："加个过渡"、"让它更顺滑"、"抽屉弹出太生硬" | [references/motion.md](./references/motion.md)；涉及拖拽/手势/揭示效果/可中断动画/掉帧问题再加 [references/motion-craft.md](./references/motion-craft.md) |
+| **诊断** | 只想知道哪里不对："这页面为什么难用/难看" | [references/anti-patterns.md](./references/anti-patterns.md)、[references/layout.md](./references/layout.md)；按下方"诊断输出格式"给结论；属于结构层的问题（缺状态、流程绕、信息优先级错）标注为上游问题，建议走 creekmoon-topaz-pm |
 
 方向与构建增强是链式的：新项目没有既定视觉方向时，先走一遍方向模式（小页面可以内联快速定），再进入构建增强。项目已有方向（主题变量、组件库、已成型的页面）时直接干活，沿用而不是另起炉灶。
+
+## 诊断输出格式
+
+诊断模式和代码审查的结论用一张表给出，一个问题一行。不要写成"现状：…… 建议：……"的段落流水账——表格能被一眼扫完并直接照着改：
+
+| 现状 | 改成 | 为什么 |
+|------|------|--------|
+| `transition: all 300ms` | `transition: transform 200ms var(--ease-enter)` | 显式列属性，避免动画到预期外的属性 |
+| 进场 `transform: scale(0)` | `scale(0.95)` + `opacity: 0` | 现实里没有东西是从"无"中出现的 |
+| 下拉菜单用 `ease-in` | ease-out 或 Enter 曲线 | 起步慢，同样时长感觉更迟钝 |
+| 按钮没有 `:active` 态 | `:active { transform: scale(0.97) }` | 按下要有物理反馈 |
+
+"为什么"一列用一句话说清代价，不堆设计术语。属于上游结构层的问题（缺状态、流程绕、信息优先级错）单独列在表外，标注建议走 creekmoon-topaz-pm。
 
 ## 构建增强工作流
 
@@ -61,7 +74,7 @@ description: 视觉与质感增强技能（锦上添花层）：在需求与页�
 - **状态的视觉表达完整**。状态清单来自上游；每个状态的样式是你的职责——hover / focus / active / disabled / loading / empty / error 都要做，控件在文案变化或加载时保持尺寸稳定，不跳动。
 - **中文排版**：使用系统中文字体栈，正文不小于 13px，正文行高 1.5-1.6，表格数字用 `tabular-nums` 并右对齐。
 - **工作界面用工具文案**。说明位置、状态、动作，不写营销口号；营销语言只属于营销页面。
-- **动效只动 `transform` 和 `opacity`**，常规 UI 时长 300ms 以内，禁止 `transition: all`。
+- **动效只动 `transform` 和 `opacity`**，常规 UI 时长 300ms 以内，禁止 `transition: all`；高频操作和键盘触发的操作不加动效，可按压元素必须有 `:active` 物理反馈。
 
 ## 质量闸门
 
@@ -72,7 +85,8 @@ description: 视觉与质感增强技能（锦上添花层）：在需求与页�
 - 2 秒内能看出页面上什么最重要、什么次要、什么可忽略。
 - 配色有明确方向（带色温的中性色 + 一个主色），不是默认 Tailwind 味。
 - 嵌套元素圆角同心，深度策略全页一致。
-- hover、focus、loading、empty、error 状态齐全，控件尺寸稳定。
+- hover、focus、active、loading、empty、error 状态齐全，控件尺寸稳定。
+- 动效经得起慢放：无 `transition: all`、无 `scale(0)` 进场、悬浮层从触发点长出、成对元素时序一致、高频交互没有多余动画。
 - 桌面和移动宽度下层级都可读，文本不溢出、不换行错乱。
 - 只扫标题、标签和数字就能理解页面在讲什么。
 - 成品看起来属于这个产品的品类，而不是抄某个参考品牌的皮。
@@ -84,6 +98,8 @@ description: 视觉与质感增强技能（锦上添花层）：在需求与页�
 - 需要运行的应用就启动 dev server，报告访问地址；在桌面和移动视口各检查一遍。
 - 检查控制台报错与失败的网络请求。
 - 实际遍历主要交互状态：悬停、聚焦、按下、禁用、加载、空数据、错误。
+- 有动效时慢放检查一遍（时长临时调到 2-5 倍或用 DevTools Animations 面板）：交叉淡入有没有露出两个图层、缓动有没有突然启停、`transform-origin` 是否正确、成对属性是否同步。
+- 拖拽、滑动这类手势交互在真机上验证，模拟器的手感不作数。
 - 确认按钮、卡片、侧栏、紧凑面板中的文本不溢出、不重叠。
 - 在总结中列出本次加载过的参考文件和所选模式。
 
@@ -95,7 +111,8 @@ description: 视觉与质感增强技能（锦上添花层）：在需求与页�
 | [references/tokens.md](./references/tokens.md) | 配色系统、字体阶梯、间距网格、圆角、阴影公式、可复制的 CSS 变量模板 | 构建增强、方向、打磨 |
 | [references/layout.md](./references/layout.md) | 布局实现细节：骨架实现规格、栅格与响应式、密度与留白 | 构建增强、诊断 |
 | [references/components.md](./references/components.md) | 按钮、表单、表格、卡片、徽章、导航、状态设计的具体规则 | 构建增强、打磨 |
-| [references/motion.md](./references/motion.md) | 动效决策、时长与缓动默认表、空间与编排、可访问性、反模式 | 动效模式；构建增强中涉及过渡时 |
+| [references/motion.md](./references/motion.md) | 动效决策：要不要动、时长与缓动默认表、空间与编排、感知性能、可访问性、反模式 | 动效模式；构建增强中涉及过渡时 |
+| [references/motion-craft.md](./references/motion-craft.md) | 动效实现技法：弹簧参数、clip-path 揭示、拖拽与手势物理、实现选型（CSS / WAAPI / JS）、动画调试 | 写复杂交互（拖拽、手势、可中断动画、tab 指示器、揭示效果）或排查掉帧、效果不达预期时 |
 | [references/anti-patterns.md](./references/anti-patterns.md) | AI 模板味信号清单（布局/配色/组件/文案），每条附改法 | 打磨、诊断；构建增强自检 |
 
 ## 相关技能
