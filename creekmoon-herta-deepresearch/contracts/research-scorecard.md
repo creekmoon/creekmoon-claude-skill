@@ -51,6 +51,7 @@
 | `blueprint_ask_map_exists` | 是否存在 `Ask Map`，且覆盖用户每个显式问题 | `= yes` |
 | `blueprint_outline_exists` | 是否存在 `Derived Outline`，且每节标注了存在理由 | `= yes` |
 | `blueprint_first_screen_exists` | 是否存在 `First Screen` 底稿，且最核心结论直接命中用户诉求 | `= yes` |
+| `blueprint_core_insight_exists` | 是否存在 `Core Insight`，且写出了报告存在的一句话理由（"本次无意外发现"也算通过，空话套话不算） | `= yes` |
 | `blueprint_trace_map_exists` | 是否存在 `Trace Map` 表，含至少 2 行数据 | `= yes` |
 
 ## 最终报告量化指标（意图无关）
@@ -66,6 +67,7 @@
 | `diagrams_serve_understanding` | 报告里出现的每张图是否都服务理解（无装饰图、无凑数图）；一张图都没有但意图本就不需要图，也算通过 | `= yes` |
 | `first_screen_no_code_identifiers` | 第一屏是否出现类名/方法名/枚举值/接口路径（产品名如 Kafka/MongoDB 不计入） | `= no` |
 | `report_has_no_unconfirmed_section` | 报告是否不存在 `未确认`/`待验证`/`To Verify`/`Open Questions` 栏目或同义表达 | `= yes` |
+| `insight_discipline` | 报告中"未问但关键"的点是否 ≤ 2 处、均挂证据锚点、且与蓝图 `Unasked but Critical` 对应（为 0 也算通过） | `= yes` |
 | `trace_rows_total` | 报告 `证据回溯表` 数据行数 | `>= 4` |
 | `trace_rows_with_anchor` | `证据回溯表` 中锚点不为空的行数 | `= trace_rows_total` |
 
@@ -80,6 +82,7 @@
 | `bold_restraint` | 是否没有满屏加粗（抽查段落，每段加粗 `<= 2` 处） | `= yes` |
 | `not_table_wall` | 删掉全部表格与列表后，剩下的散文是否仍能基本读成文（不是拼盘） | `= yes` |
 | `no_assistant_voice` | 是否避免助手腔（"我们可以看到""值得注意的是""综上所述"）与 ✅❌ 当正文主力 | `= yes` |
+| `report_has_stance` | 报告判断是否有主次强弱之分（既非句句均匀用力，也非句句挂"可能"），能看出撰稿官认为什么最重要 | `= yes` |
 
 说明：
 - `diagram_blocks_total` 不再设硬下限。是否需要图、需要几张，由意图决定；评分只看"出现的图是否都服务理解"。
