@@ -36,7 +36,7 @@ rg "transaction|Transaction|atomic|Atomic|@Transactional|with transaction" src/ 
 
 ### Phase 2: 结论草稿
 
-在写正文前，先整理“候选结论清单”：
+在写正文前，先整理“候选结论清单”。每条候选结论按四要素书写：业务条件、系统行为、越界后果、证据锚点；写不满四要素的先回 Phase 1 补证据：
 
 ```markdown
 | 候选结论 | 结论类型 | 证据锚点 | 当前判断 | 正文去向 |
@@ -62,6 +62,8 @@ rg "transaction|Transaction|atomic|Atomic|@Transactional|with transaction" src/ 
 - [ ] 去掉接口名、字段名、术语后，这个结论还能成立吗？
 - [ ] 是否存在更保守但同样解释代码的说法？
 - [ ] 如果证据不足，这个结论是否已降级到 To Verify？
+- [ ] 文中每个专有名词都能在代码、项目文档或行业通语中找到出处吗？有没有自造比喻词、数字打包名、自创简称？
+- [ ] 这条结论是变更流水/代码复述，还是回答了“业务在什么条件下会发生什么、边界在哪”？
 ```
 
 ### Phase 4: 深度挖掘
@@ -111,7 +113,51 @@ rg "transaction|Transaction|atomic|Atomic|@Transactional|with transaction" src/ 
 - [ ] 跨数据操作有什么时序要求？顺序错误的影响？
 - [ ] 哪些跨数据状态必须同时为真？（业务不变量）
 - [ ] 删除/作废一行数据会如何传播？
+
+### 边界探索（每个产物必须探到代码尽头）
+- [ ] 拒绝边界：什么输入/状态/身份会被拒绝？拒绝时用户看到什么？
+- [ ] 数值边界：上限、超时、重试次数、批量大小、分页的具体数值？越界行为？
+- [ ] 时间边界：有效期、窗口期、冷却期？过期后行为？
+- [ ] 状态边界：哪些状态转换被禁止？终态之后还能做什么？
+- [ ] 数据可见性边界：哪些数据被默认过滤（软删除、租户隔离、状态过滤）？
+- [ ] 系统边界：链路在哪里离开本仓库？带走什么、带回什么？外部失败时本系统怎样？
+- [ ] 反例试探：每条“系统会 X”的结论，找过“什么时候不 X”吗？
+- [ ] 每条链路要么追到持久化/外部系统/消息中间件为止，要么写明中断位置与原因
 ```
+
+### Phase 4.5: 更新模式支持——入口普查与场景对账
+
+深度更新不从 git diff 出发，用入口普查作为线索源。按技术栈调整命令：
+
+```bash
+# HTTP/RPC 入口
+rg "@(Rest)?Controller|@RequestMapping|@(Get|Post|Put|Delete)Mapping" src/ -g "!*test*"
+rg "router\.(get|post|put|delete)|app\.(get|post|put|delete)|@app\.route|APIRouter" src/ -g "!*test*"
+
+# 定时任务
+rg "@Scheduled|@XxlJob|cron|schedule\.|setInterval|node-cron" src/ -g "!*test*"
+
+# MQ 消费 / 事件监听
+rg "@KafkaListener|@RabbitListener|@RocketMQMessageListener|@EventListener|\.subscribe\(|consumer" src/ -g "!*test*"
+
+# 回调 / Webhook 入口
+rg "callback|webhook|notify" src/ -i -g "!*test*"
+
+# CLI / main 入口
+rg "def main|func main|public static void main|argparse|commander|click\.command" src/ -g "!*test*"
+```
+
+产出「入口 → 场景」对账表，与 `00-index.md` / `business/flows/` 已记载场景比对：
+
+```markdown
+| 入口（签名） | 触发者 | 业务意图（一句话） | 记忆中对应场景 | 差异类型 |
+|-------------|--------|-------------------|----------------|---------|
+| `OrderController#create()` | 用户下单 | 创建物流订单 | [order](business/artifacts/order.md) | 无差异 |
+| `RefundJob#scan()` | 定时任务 5min | 扫描超时未接单订单并退款 | 无 | 新场景 → 派子代理深挖 |
+| （代码中已无对应入口） | — | 记忆记载“运营批量导入” | [import-flow](business/flows/import-flow.md) | 失踪场景 → 按当前态原则清理 |
+```
+
+对账后的动作：新场景派子代理走 Phase 1-4；失踪场景按当前态原则重写或删除；口径漂移以代码为准重新取证。最后随机抽 2-3 个“无差异”场景验证证据锚点仍然成立。
 
 ---
 
@@ -203,6 +249,14 @@ confidence: high
 **失败影响**：{失败时影响什么业务}
 
 **无影响范围**：{失败时不影响什么，可降级}
+
+## Key Conclusions（核心结论）
+
+> 3-7 条，按业务重要性排序。每条说清业务条件、系统行为、越界后果，自带证据锚点；
+> 术语必须可回指代码/项目文档/行业通语，禁止自造词。
+
+1. {当 {业务条件} 时，系统 {行为}；{越界} 时 {后果}} — 证据：`{ClassName}#{method}()`
+2. {结论} — 证据：`{table}` / `{config}`
 
 ## Boundary & Confidence
 
@@ -364,6 +418,12 @@ confidence: high
 **触发条件**：{什么情况下触发}
 
 **成功标准**：{怎么算完成}
+
+## Key Conclusions（核心结论）
+
+> 3-5 条该流程最关键的业务规律：什么条件下走通、在哪一步会被拦、失败如何传播。每条自带证据锚点。
+
+1. {结论} — 证据：`{ClassName}#{method}()`
 
 ## Boundary & Confidence
 
@@ -1238,10 +1298,22 @@ WHERE {condition}
 
 ## 完整术语矩阵
 
-| 业务术语 | 物理字段 | 所属表 | 业务定义 | 计算逻辑 | 同义词陷阱 |
-|----------|----------|--------|----------|----------|------------|
-| {term_a} | `{field_a}` | [{table_a}](../schema/tables/{table_a}.md) | {定义} | {formula} | 勿与{term_b}混淆 |
-| {term_b} | `{field_b}` | [{table_b}](../schema/tables/{table_b}.md) | {定义} | "原生存储" | {term_a}的旧称 |
+| 业务术语 | 术语来源 | 物理字段 | 所属表 | 业务定义 | 计算逻辑 | 同义词陷阱 |
+|----------|----------|----------|--------|----------|----------|------------|
+| {term_a} | {项目原生/业务方惯用/行业通语} | `{field_a}` | [{table_a}](../schema/tables/{table_a}.md) | {定义} | {formula} | 勿与{term_b}混淆 |
+| {term_b} | {项目原生/业务方惯用/行业通语} | `{field_b}` | [{table_b}](../schema/tables/{table_b}.md) | {定义} | "原生存储" | {term_a}的旧称 |
+
+---
+
+## 记忆用语登记
+
+> 记忆文档为行文引入、但项目中并不存在的简称，必须全部登记于此并满足术语纪律三条件
+> （平实可望文生义、首次出现处定义、此处登记）。未登记的自创词不允许出现在任何记忆文档中。
+> 本区应尽量保持为空——能用项目原生叫法或大白话直述的，不要引入简称。
+
+| 记忆用语 | 全称/定义 | 首次定义位置 | 为什么需要简称 |
+|----------|-----------|--------------|----------------|
+| {简称} | {全称与定义} | [{doc}](../business/artifacts/{doc}.md) | {原因} |
 
 ---
 
@@ -1386,6 +1458,14 @@ confidence: high
 **失败影响**：订单丢失=客户无法跟踪货物+财务无法结算+客服无法响应查询
 
 **无影响范围**：订单查询失败不影响正在执行的运输任务（承运商侧独立运行）
+
+## Key Conclusions（核心结论）
+
+1. 支付后 24 小时内未被承运商接单的订单会被自动取消并原路退款，客户需重新下单。— 证据：`OrderTimeoutJob#scanPaidOrders()`
+2. 取消订单只允许在 CREATED/PAID 状态；一旦推送承运商即不可取消，因为承运商成本已发生。— 证据：`OrderService#cancel(Long)`
+3. 客户看到 SHIPPED 时运单号可能仍为空（承运商回调异步写入），前端以“物流信息同步中”兜底展示。— 证据：`CarrierCallback#onAccept()`
+4. 财务账单只认 DELIVERED 终态，且扫描窗口向前多覆盖 5 分钟，规避事务提交延迟造成的漏单。— 证据：`BillingJob#scanDelivered()`
+5. 状态更新使用乐观锁；去掉 version 字段会导致并发回调互相覆盖状态。— 证据：`OrderMapper#updateStatus`
 
 ## Lifecycle
 
@@ -1532,6 +1612,12 @@ confidence: medium
 
 **无影响范围**：不直接证明本系统拥有完整履约域建模能力；当前证据只支持“存在外部履约对接链路”。
 
+## Key Conclusions（核心结论）
+
+1. 主单状态变更后由异步任务推送外部履约平台；推送失败按重试状态字段重试，主单流转不被阻塞。— 证据：`OrderSyncService#syncFulfillmentStatus(Long)`、`t_order_sync_log`
+2. 本地只存对接字段（外部单号、同步结果、重试状态），履约状态机由外部平台持有。— 证据：`t_order_sync_log` 表结构
+3. 回执更新的是同步结果字段而非主单终态；主单终态推进依赖同步任务的重试结果。— 证据：`FulfillmentCallbackController#callback()`
+
 ## Boundary & Confidence
 
 ### Confirmed Facts
@@ -1562,6 +1648,40 @@ confidence: medium
 - `t_order_sync_log` — 记录同步请求、回执、重试状态
 ```
 
+### Bad：术语自造，比喻包装
+
+```markdown
+订单创建要闯过 15 道门闸，全部放行才能落库。门闸挂在“业务大脑”上，由“护城河规则”兜底。
+```
+
+三重问题：“门闸/业务大脑/护城河”在代码里搜不到，读者无法定位；读完仍不知道拦截什么、顺序如何、失败会怎样；“15”在第 16 项校验加入时就作废，且无人知道该更新这里。
+
+### Good：术语可回指，数量进正文
+
+```markdown
+订单创建前由 `OrderCreateValidator` 执行前置校验（当前 15 项，含参数合法性、实时库存、
+黑名单、限购），任一不通过即拒绝下单并返回具体错误码，订单不落库。
+— 证据：`OrderCreateValidator#validate(OrderCreateCmd)`
+```
+
+### Bad：更新记忆 = 抄 git 日志
+
+```markdown
+2026-06-10：新增 RefundJob，优化了退款逻辑，修复超时订单不退款的问题。
+```
+
+变更流水，没有业务结论，也违反当前态原则：读者不知道现在系统的退款规则是什么、边界在哪。
+
+### Good：更新记忆 = 沿线索挖出业务结论
+
+```markdown
+支付后 24 小时未被承运商接单的订单，由定时任务（5 分钟一轮）自动取消并原路退款；
+退款失败进入人工补偿队列，不会无限重试。
+— 证据：`RefundJob#scan()`、`RefundService#refund(Long)`
+```
+
+同一个 diff，先向上追到入口（定时任务）、向下追到边界（退款失败的兜底），才落成结论；日期与“新增/修复”字样不进正文。
+
 ---
 
 ## 5. 质量检查清单
@@ -1572,11 +1692,25 @@ confidence: medium
 - [ ] 包含 Frontmatter，所有字段已填
 - [ ] 包含 Why Exists 章节
 - [ ] `Why Exists` 只写已证实内容，没有把弱证据包装成系统定位
+- [ ] 包含 Key Conclusions 章节（3-7 条）
 - [ ] 包含 `Boundary & Confidence`，并区分 Confirmed Facts / Evidence-backed Inferences / To Verify
 - [ ] 包含 Lifecycle 章节（Stages 表格 + Data Flow 表格）
 - [ ] 包含 Trace 章节（调用链 + 事务边界）
 - [ ] 包含 Failure & Degradation 章节
 - [ ] 包含 Evidence Anchors（代码位置）
+
+### 核心结论质量
+- [ ] 每条结论四要素齐全：业务条件、系统行为、越界后果、证据锚点
+- [ ] 每条结论通过三检验：可证伪、可行动、非代码复述
+- [ ] 没有变更流水式条目（“新增/优化/修复了 xxx”）
+- [ ] 边界探索清单已执行：拒绝/数值/时间/状态/数据可见性/系统边界至少覆盖 4 类
+- [ ] 每条“系统会 X”的结论都做过反例试探
+
+### 术语纪律
+- [ ] 文档中每个专有名词都能在代码、项目文档或行业通语中找到出处
+- [ ] 没有比喻造词、数字打包命名、自创缩写、修辞拔高
+- [ ] 记忆文档引入的简称已登记 glossary「记忆用语登记」区并标注来源
+- [ ] 同一概念与其他记忆文档用词一致，无同义漂移
 
 ### 深度业务规则 ★
 - [ ] 至少识别 1 个跨模块约束
