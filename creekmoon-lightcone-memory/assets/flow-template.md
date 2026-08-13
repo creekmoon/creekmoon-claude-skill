@@ -19,6 +19,12 @@ confidence: low
 
 **成功标准**：{怎么算完成}
 
+## Key Conclusions（核心结论）
+
+> 3-5 条该流程最关键的业务规律：什么条件下走通、在哪一步会被拦、失败如何传播。每条自带证据锚点。
+
+1. {结论} — 证据：`{ClassName}#{method}()`
+
 ## Boundary & Confidence
 
 ### Confirmed Facts
