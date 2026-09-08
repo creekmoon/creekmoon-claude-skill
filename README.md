@@ -27,7 +27,6 @@
 | `riper5` | 严格执行协议，约束 AI 先研究后实施，避免未授权直接改代码                          | 用户明确要求“执行 riper5”、需要高约束协作 |
 | `creekmoon-fuxuan-testcase` | 测试用例设计规范，覆盖冒烟测试、分支测试与接口测试模式，强调数据驱动与可维护性         | 编写测试用例、评审覆盖率、设计冒烟测试集 |
 | `creekmoon-lightcone-memory` | 项目记忆系统，用高信息密度文档沉淀业务图谱和关键代码上下文                       | 接手项目、分析项目、建立长期记忆     |
-| `creekmoon-herta-deepresearch` | 面向复杂业务场景做高强度深度研究，交叉整合代码逻辑、静态结构、配置规则与业务关系，输出证据化结论 | 复杂链路梳理、系统行为追因、业务与技术口径对齐、疑难场景深挖 |
 | `creekmoon-weekly-report` | 从 Git 提交中提炼开发活动，生成结构化《项目周报-开发维度》                    | 周报、阶段汇报、研发活动归纳       |
 | `creekmoon-cerydra-codex` | 从现有代码中提炼业务规律与稳定约定，经子代理规律侦察与反例核查后生成指南性规范文件（xxx_rule.md），以"推荐怎么写+背后规律+何时可偏离"为主体 | 整理模块规范、抽取通用规则、沉淀团队推荐写法 |
 | `creekmoon-trailblazer-readme` | 按读者真实问题生成或重构根目录 README：用起来就用法优先，接手就边界与流程优先，混合形态自由组块；带真实反例对照，防模板化/AI 味 | 业务接手 README、CLI/MCP/SDK 用法 README、重构根文档 |
@@ -78,12 +77,6 @@ curl -fsSL https://gitee.com/creekmoon/creekmoon-claude-skill/raw/master/autoUpd
 - 新版默认使用 `.light-cone/` 作为项目记忆目录
 
 如果你之前已经基于旧目录结构使用过项目记忆能力，建议逐步迁移到 `creekmoon-lightcone-memory`。
-
-业务场景深度研究能力已从 `creekmoon-scenario-research` 更名为 `creekmoon-herta-deepresearch`。
-
-- 目录名与触发名统一切换为 `creekmoon-herta-deepresearch`
-- 能力定位不变，仍然用于复杂业务场景的高强度深度研究
-- 如果你之前引用过旧名字，建议同步改为新名字
 
 ## 适合谁用
 
