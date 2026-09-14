@@ -1,12 +1,12 @@
 ---
 name: creekmoon-code-style
-version: 1.0.9
-description: creekmoon的JAVA代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界、职责分离与层级边界、中文方法注释）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于判断方法主次流程、Happy Path、常规路径与测试旁路/兼容分支、以及命名不清导致职责耦合、层级越界、过度设计或阅读理解困难的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves method naming, responsibility separation, layer boundaries, hidden side effects, orchestration/execution coupling, or distinguishing the main business path from test bypasses, compatibility branches, fallback flows, and other special cases.
+version: 1.1.0
+description: creekmoon的JAVA代码风格规范（方法设计、入参风格、流程组织、命名与副作用边界、职责分离与层级边界、中文注释规范）。编写或修改代码时自动遵循，审查代码时按清单检查。特别适用于判断方法主次流程、Happy Path、常规路径与测试旁路/兼容分支、以及命名不清导致职责耦合、层级越界、过度设计或阅读理解困难的场景。适用于所有编程语言。Use when writing code, modifying code, reviewing code, checking code style, refactoring, scanning compliance, or doing code review, especially when the task involves method naming, responsibility separation, layer boundaries, hidden side effects, orchestration/execution coupling, or distinguishing the main business path from test bypasses, compatibility branches, fallback flows, and other special cases.
 ---
 
 # Creekmoon Code Style
 
-适用于JAVA语言和项目。规范方法设计与抽取粒度、入参风格、方法内部流程组织（主流程优先）、命名与副作用边界、职责分离与层级边界（Name == Behavior）。
+适用于JAVA语言和项目。规范方法设计与抽取粒度、入参风格、方法内部流程组织（主流程优先）、命名与副作用边界、职责分离与层级边界（Name == Behavior）、注释信息增量与寿命管理。
 
 ## 核心规则
 
@@ -325,11 +325,36 @@ List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
 }
 ```
 
+### R14. 注释信息增量原则（注释总纲）
+
+注释存在的唯一理由是提供代码本身读不出来的信息。R9 分区注释、R12 方法 Javadoc、R7 Stream 步骤注释是本原则在各场景的实例，格式细则按各规则执行；本规则管"该不该写、写什么、写完后怎么维护"。
+
+- **先代码后注释**: 读者要靠注释才能看懂时，先改命名/调结构，再写注释；禁止用注释弥补烂命名（如 `Map m; // key是承运商编码`，应改名 `carrierCode2Qty`）
+- **写什么**: 只写代码说不出的信息——为什么这么做（而非做了什么）、业务背景与外部约束、坑与反直觉点、为什么不走另一条明显路径
+- **引用不替代内容**: 日期、需求单号、负责人、PR 链接只是边缘化的定位元数据；关键信息（问题、原因、处理方式、下线条件）必须自包含在注释里，禁止 `/* 详见 PROJ-1234 */`、`/* 2026-09-14 修复 */` 这类只有引用没有内容的空壳注释
+- **怎么写**: 精准命中业务对象与限定条件；默认一两行，长注释仅对复杂核心逻辑开放
+- **寿命管理**: 改代码必须同步改注释（过期注释比没有注释更糟）；禁止保留注释掉的死代码；TODO 必须说清要做什么/等什么条件，并带日期/负责人/关联单号至少其一
+
+**类与字段注释：**
+
+- 类/接口说明职责与使用场景（何时用它、何时不用）
+- 字段仅在业务含义不直观时写（枚举值含义、单位、取值来源、特殊取值约定）
+
+**修复/业务分支注释（日期前缀）：**
+
+- 针对**已有业务**做修复、兼容分支、业务特例分支、临时旁路、灰度补丁时，新代码部分的块注释建议以日期为前缀：`/* yyyy-MM-dd 类型: 原因与背景 */`（类型为 修复/兼容/特例/临时/灰度 之一）
+- 目的：让后续读者判断补丁"年龄"、评估特例分支可否下线、回溯引入背景
+- 日期前缀只是辅助定位，注释主体仍须自包含关键信息（问题、原因、下线条件），不允许只有日期+类型的空壳
+- 新业务的正常主线开发不加日期前缀——主线代码不是补丁
+- 正面: `/* 2026-09-14 兼容: 2026-09 前的老订单没有 carrierCode，回退到物流单取值；老数据补齐后本分支可下线 */`
+- 反面: `/* 2026-09-14 修复 */` — 只有日期没有内容，读者必须翻提交记录才能理解
+- 反面: `/* 兼容老数据 */` — 无日期无背景，读者无法判断这段特例还要不要留
+
 ---
 
 ## 场景 A：编写代码（核心场景，默认激活）
 
-为用户编写或修改代码时，自动遵循全部 13 条规则，无需用户提示。
+为用户编写或修改代码时，自动遵循全部 14 条规则，无需用户提示。
 
 **执行要项：**
 
@@ -346,6 +371,7 @@ List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
 11. 纯 CPU 转换按 R7 使用 Stream 并顶部写步骤注释
 12. 每个方法按 R12 添加中文 Javadoc；普通方法默认 2 行（方法意义 + 核心逻辑），复杂核心业务可展开说明；对象类型入参必须说明状态特征和获取方式
 13. 分支判断条件按 R13 只表达业务意图，防御性检查不得侵入分支谓词；可被下游兜住的空值不再加守卫
+14. 注释按 R14 信息增量原则：先代码后注释、只写代码说不出的信息、引用（日期/单号/链接）不替代内容、改代码同步改注释、禁止死代码注释；已有业务的修复/业务分支注释建议带 `yyyy-MM-dd` 日期前缀且主体自包含关键信息
 
 ## 场景 B：代码审查（按需触发）
 
@@ -360,7 +386,7 @@ List<CarrierVO> listInquiryCarrier(InquiryCarrierQueryBO queryBO);
 
 **依据类型（四选一，必填）：**
 
-- **Style Rule**：明确对应 R1–R13 中的某条规则，**必须写规则号**
+- **Style Rule**：明确对应 R1–R14 中的某条规则，**必须写规则号**
 - **Project Convention**：项目内部约定/历史一致性，**必须写约定来源**（如"同文件既有常量风格"）
 - **Correctness**：正确性/Bug 风险，**必须描述风险与触发条件**
 - **Preference**：可读性偏好，**不得带规则号，不得强制修改**
